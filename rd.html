@@ -1,0 +1,377 @@
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc" />
+
+    <meta name="author" content="Landon Sego" />
+  
+  
+  <title>glmnetLRC</title>
+
+    <script src="assets/jquery-1.11.0/jquery.min.js"></script>
+  <link href="assets/bootstrap-3.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="assets/bootstrap-3.3.2/js/bootstrap.min.js"></script>
+  <script src="assets/bootstrap-3.3.2/shim/html5shiv.min.js"></script>
+  <script src="assets/bootstrap-3.3.2/shim/respond.min.js"></script>
+  <link href="assets/highlight-8.4/tomorrow.css" rel="stylesheet" />
+  <script src="assets/highlight-8.4/highlight.pack.js"></script>
+  <link href="assets/fontawesome-4.3.0/css/font-awesome.min.css" rel="stylesheet" />
+  <script src="assets/stickykit-1.1.1/sticky-kit.min.js"></script>
+  <script src="assets/jqueryeasing-1.3/jquery.easing.min.js"></script>
+  <link href="assets/packagedocs-0.0.1/pd.css" rel="stylesheet" />
+  <script src="assets/packagedocs-0.0.1/pd.js"></script>
+  <script src="assets/packagedocs-0.0.1/pd-collapse-toc.js"></script>
+  
+  
+  
+    <style type="text/css">
+  .section h1 {
+    margin-top: 50px;
+    margin-bottom: 70px;
+    text-align: center;
+    border-bottom: 0px;
+    font-size: 35px;
+    font-weight: 400;
+    font-family: "PT Mono","Georgia",Arial,sans-serif;
+  }
+
+  .section h2 {
+    margin-left: -10px !important;
+    border-bottom: 3px solid #5d9fea;
+  }
+
+  </style>
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+
+<body>
+
+  
+  <header class="navbar navbar-white navbar-fixed-top" role="banner" id="header">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+                <span class="navbar-brand">
+<a href="http://pnnl.github.io"> <img src='figures/icon.png' alt='PNNL icon' width='30px' height='30px' style='margin-top: -3px;'> </a>
+        </span>
+                <a href="index.html" class="navbar-brand page-scroll">
+        glmnetLRC - Package Reference
+        </a>
+      </div>
+            <nav class="collapse navbar-collapse" role="navigation">
+        <ul class="nav nav-pills pull-right">
+<li>
+<a href='index.html'>Docs</a>
+</li>
+<li class="active">
+<a href='rd.html'>Package Ref</a>
+</li>
+<li>
+<a href='https://github.com/pnnl/glmnetLRC'>Github <i class='fa fa-github'></i></a>
+</li>
+        </ul>
+      </nav>
+          </div>
+  </header>
+
+  <!-- Begin Body -->
+  <div class="container">
+    <div class="row">
+            <div class="col-md-3" id="sidebar-col">
+        <div id="toc">
+          <ul>
+          <li><a href="#functions">Functions</a><ul>
+          <li><a href="#lossmatrix">lossMatrix</a></li>
+          <li><a href="#summary.lrcpred">summary.LRCpred</a></li>
+          </ul></li>
+          <li><a href="#data">Data</a><ul>
+          <li><a href="#testdata">testdata</a></li>
+          <li><a href="#traindata">traindata</a></li>
+          <li><a href="#glmnetlrc_fit">glmnetLRC_fit</a></li>
+          </ul></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-9" id="content-col">
+      
+<div id="content-top"></div>
+<h1>
+Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss Function
+</h1>
+<p>
+<strong>Author:</strong> Landon Sego
+</p>
+<p>
+<strong>Version:</strong> 0.1.1
+</p>
+<p>
+<strong>License:</strong> file LICENSE
+</p>
+<h4>
+Description
+</h4>
+<p>
+Methods for fitting and predicting lasso and elastic-net logistic regression classifiers (LRC) with an arbitrary loss function for the classification error.
+</p>
+<h4>
+Depends
+</h4>
+<p>
+(none)
+</p>
+<h4>
+Imports
+</h4>
+<p>
+glmnet, plyr, Smisc
+</p>
+<h4>
+Suggests
+</h4>
+<p>
+parallel, testthat
+</p>
+<h4>
+Enhances
+</h4>
+<p>
+(none)
+</p>
+<div id="functions" class="section level1">
+<h1>Functions</h1>
+<div id="lossmatrix" class="section level2">
+<h2>lossMatrix</h2>
+<h3>
+Build a loss matrix
+</h3>
+<p class="rd-p">
+Build an arbitrary loss matrix for discrete classification
+</p>
+<h4>
+Usage
+</h4>
+<pre class="r"><code>lossMatrix(truthLabels, predLabels, lossValues)
+
+printlossMat(x, ...)</code></pre>
+<h4>
+Arguments
+</h4>
+<dl class="rd-dl">
+<dt>
+truthLabels
+</dt>
+<dd class="rd-dd">
+character vector of truth labels
+</dd>
+<dt>
+predLabels
+</dt>
+<dd class="rd-dd">
+character vector of corresponding predicted labels, which must be the same length as <code>truthLabels</code>
+</dd>
+<dt>
+lossValues
+</dt>
+<dd class="rd-dd">
+numeric vector of corresponding loss values, which must be the same length as <code>truthLabels</code> and <code>predLabels</code>.
+</dd>
+<dt>
+x
+</dt>
+<dd class="rd-dd">
+An object of class <code>lossMat</code>
+</dd>
+<dt>
+…
+</dt>
+<dd class="rd-dd">
+Additional arguments to <code>print.default</code>
+</dd>
+</dl>
+<h4>
+Details
+</h4>
+<p class="rd-p">
+This function checks the inputs and binds the three arguments columnwise into a dataframe.
+</p>
+<h4>
+Value
+</h4>
+<p class="rd-p">
+<dl>
+An object of class <code>lossMat</code>: a dataframe that contains all the information of the loss matrix to be used by in calculating the loss.
+</dl>
+</p>
+<h4>
+Examples
+</h4>
+<pre class="r"><code># A 2x2 symmetric loss matrix
+lossMatrix(c("a","a","b","b"), c("a","b","a","b"), c(0, 1, 5, 0))
+
+# A 3x2 asymmetric loss matrix
+lossMatrix(rep(letters[1:3], each = 2), rep(letters[4:5], 3),
+           c(0, 3, 2, 0, 1, 0))
+
+# An unbalanced loss matrix with a missing element.
+# Not sure why one would want to do this.
+lossMatrix(c("a","a","b"), c("a","b","b"), c(0, 1, 0))</code></pre>
+<h4>
+Author
+</h4>
+<p>Landon Sego</p>
+</div>
+<div id="summary.lrcpred" class="section level2">
+<h2>summary.LRCpred</h2>
+<h3>
+Calculate performance metrics of logistic regression classifiers
+</h3>
+<p class="rd-p">
+Calculate accuracy, sensitivity, specificity, false positive rate, and false negative rate for predictions from logistic regression classifiers
+</p>
+<h4>
+Usage
+</h4>
+<pre class="r"><code>summaryLRCpred(object, ...)</code></pre>
+<h4>
+Arguments
+</h4>
+<dl class="rd-dl">
+<dt>
+object
+</dt>
+<dd class="rd-dd">
+an object of class <code>LRC_pred</code> returned by <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>.
+</dd>
+<dt>
+…
+</dt>
+<dd class="rd-dd">
+Ignored
+</dd>
+</dl>
+<h4>
+Value
+</h4>
+<p class="rd-p">
+<dl>
+<ul>
+<li>
+If <code>truthCol</code> was provided in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, a <code>data.frame</code> is returned with the sensitivity, specificity, false negative rate, false positive rate, and accuracy for the class designated by the second level of the <code>truthLabels</code> argument in <code><a href=#glmnetlrc>glmnetLRC</a></code>.
+</p>
+<p class="rd-p">
+</li>
+<li>
+If <code>truthCol = NULL</code> in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code> a tabulation of the number of predictions for each class is returned.
+</li>
+</ul>
+</p>
+<p class="rd-p">
+</dl>
+</p>
+<h4>
+See also
+</h4>
+<p>See <code><a href=#glmnetlrc>glmnetLRC</a></code> and <code><a href=#glmnetlrc_fit>glmnetLRC_fit</a></code> for examples.</p>
+<h4>
+Author
+</h4>
+<p>Landon Sego</p>
+</div>
+</div>
+<div id="data" class="section level1">
+<h1>Data</h1>
+<div id="testdata" class="section level2">
+<h2>testdata</h2>
+<h3>
+Test data set from the Vorbitrap mass spectrometry instrument
+</h3>
+<h4>
+Format
+</h4>
+<p class="rd-p">
+A dataframe with 99 observations and 96 variables
+</p>
+<h4>
+References
+</h4>
+<p class="rd-p">
+Amidan BG, Orton DJ, LaMarche BL, Monroe ME, Moore RJ, Venzin AM, Smith RD, Sego LH, Tardiff MF, Payne SH. 2014. Signatures for Mass Spectrometry Data Quality. Journal of Proteome Research. 13(4), 2215-2222. <a href = http://pubs.acs.org/doi/abs/10.1021/pr401143e>http://pubs.acs.org/doi/abs/10.1021/pr401143e</a>
+</p>
+<h4>
+Examples
+</h4>
+<pre class="r"><code>data(testdata)
+str(testdata)</code></pre>
+</div>
+<div id="traindata" class="section level2">
+<h2>traindata</h2>
+<h3>
+Training data set from the Vorbitrap mass spectrometry instrument
+</h3>
+<h4>
+Format
+</h4>
+<p class="rd-p">
+A dataframe with 325 observations and 99 variables
+</p>
+<h4>
+References
+</h4>
+<p class="rd-p">
+Amidan BG, Orton DJ, LaMarche BL, Monroe ME, Moore RJ, Venzin AM, Smith RD, Sego LH, Tardiff MF, Payne SH. 2014. Signatures for Mass Spectrometry Data Quality. Journal of Proteome Research. 13(4), 2215-2222. <a href = http://pubs.acs.org/doi/abs/10.1021/pr401143e>http://pubs.acs.org/doi/abs/10.1021/pr401143e</a>
+</p>
+<h4>
+Examples
+</h4>
+<pre class="r"><code>data(traindata)
+str(traindata)</code></pre>
+</div>
+<div id="glmnetlrc_fit" class="section level2">
+<h2>glmnetLRC_fit</h2>
+<h3>
+A glmnetLRC model fit object
+</h3>
+<p class="rd-p">
+This object is returned by the call <code>glmnetLRC_fit &lt;- glmnetLRC(response, predictors, lossMat = lM, estimateLoss = TRUE, nJobs = parallel::detectCores())</code> in the example of <code><a href='glmnetLRC.html'>glmnetLRC</a></code>. It is preserved here in the package because it is time consuming to generate.
+</p>
+<h4>
+Format
+</h4>
+<p class="rd-p">
+A glmnetLRC object returned by <code><a href=#glmnetlrc>glmnetLRC</a></code>
+</p>
+<h4>
+Examples
+</h4>
+<pre class="r"><code># Load fitted glmnetLRC model
+data(glmnetLRC_fit)</code></pre>
+</div>
+</div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <div id="footer">
+    <div class="container">
+      <div class="col-md-6">
+                <p>&copy; Battelle Memorial Institute, 2016</p>
+              </div>
+      <div class="col-md-6">
+        <p class="pull-right">created with <a href="https://github.com/hafen/packagedocs">packagedocs</a></p>
+      </div>
+    </div>
+  </div>
+
+  
+</body>
+</html>

@@ -1,0 +1,75 @@
+# Introduction
+
+The `glmnetLRC` package makes it easy to construct a binary classifier from virtually any number of quantitative predictors that will assign an example, or observation, to one of two classes. It extends the [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) package by making it possible to train lasso or elastic-net logistic regression classifiers (LRC's) using a customized, discrete loss function to measure the classification error.  This allows users to assign unique loss values to false positive and false negative errors. The logistic regression parameter estimates are obtained by maximizing the elastic-net penalized likelihood function that contains several tuning parameters. These tuning parameters are estimated by minimizing the expected loss, which is calculated using cross validation. These online documents contain:
+
+* [Standard documentation](rd.html) for each function
+* A vignette showing how to use the pacakge from start to finish
+* Mathematical details
+
+## Package installation
+
+Begin by installing dependencies from [CRAN](http://cran.r-project.org):
+
+    install.packages(c("devtools", "glmnet", "plyr"))
+
+The [Smisc](http://pnnl.github.io/Smisc) package (which is imported by `glmnetLRC`) contains C code and requires compilation. To do this
+
+* on a Mac, you'll need [Xcode](http://developer.apple.com/xcode/) 
+* on Windows, you'll need to install [R tools](http://cran.r-project.org/bin/windows/Rtools/)
+* on Linux, compilation should take place "automatically"
+
+With the compilation tools in place, you can now install the `Smisc` and `glmnetLRC` packages
+from [the PNNL github site](http://github.com/pnnl) as follows:
+
+    devtools::install_github("pnnl/Smisc")
+    devtools::install_github("pnnl/glmnetLRC")
+
+Now load the package as usual:
+```{r loadpackage, eval = TRUE, echo = TRUE}
+library(glmnetLRC)
+```
+
+# Vignette
+
+The methods in the `glmnetLRC` package were originally implemented to automate the process of determining the curation quality of mass spectrometry samples ([Amidan, et al 2014](http://pubs.acs.org/doi/abs/10.1021/pr401143e)). Those same data will be used here to demonstrate how to train your own classifier. In the sections that follow, we show how to use the `glmnetLRC` package to train LRC models, create diagnostic plots, extract coefficients, predict the binary class of new observations, and summarize the performance of those predictions. 
+
+## Training
+
+Let's begin by loading the package and the training data:
+
+```{r train, echo = TRUE, eval = TRUE}
+# Load the VOrbitrap Shewanella QC data
+data(traindata)
+
+# A view of first two rows and first 12 columns
+traindata[1:2, 1:12]
+
+# Columns 9 to 96 contain various measures of dataset quality that
+# we will use to predict the "Curated_Quality"
+predictors <- as.matrix(traindata[,9:96])
+```
+
+We fit the LRC model by calling `r rdl("glmnetLRC()")`, which requires a binary response variable, coded as a `factor`.  The order in which the response variable is coded is important.  Specifically, the class we want to predict with the greatest sensitivity should be encoded as the second level. To illustrate how this is done, consider the Shewanella QC data, where the objective is to be sensitive to predicting poor datasets.  Hence we code `poor` last, as follows:
+
+```{r codepoor, echo = TRUE, eval = TRUE}
+response <- factor(traindata$Curated_Quality,
+                   levels = c("good", "poor"),
+                   labels = c("good", "poor"))
+
+levels(response)
+```
+Using `r rdl("glmnetLRC()")`, we can define a discrete loss matrix. For the curation
+of dataset quality, predicting `good` when the dataset is `poor` is considerably 
+worse (Loss = 5) than predicting `poor` when the dataset
+is `good` (Loss = 1).  Correct predictions receive a penalty of zero loss:
+
+```{r defineLoss, echo = TRUE, eval = TRUE}
+# Define the loss matrix
+lM <- lossMatrix(c("good","good","poor","poor"),
+                 c("good","poor","good","poor"),
+                 c(     0,     1,     5,     0))
+
+# Observe the structure of the loss matrix
+lM
+```
+To train an elastic-net model, the user needs to supply a handful of arguments to `r rdl("glmnetLRC()")`. The mandatory arguments are the true class labels, `truthLabels` (which, in this case, is, is the `response` object we created above), the matrix of predictor variables, `predictors`, and the loss matrix `lossMat`. Noteworthy additional arguments include `tauVec`, a vector of potential values of the threshold parameter $\tau \in (0, 1)$ that are used to dichotomize the predicted probabilities from the logistic regression into two class labels; `alphaVec`, a vector of potential values of the elastic-net mixing parameter $\alpha \in [0, 1]$; `cvFolds`, the number of cross validation folds; `cvReps`, the number of times the cross validation process is repeated with a different random partition of the data, and `masterSeed`, which controls the partitioning of the data into the cross validation folds. Keep in mind that $\alpha$ governs the tradeoff between the two regularization penalties. When $\alpha = 0$, $L_2$ regularization (the ridge penalty) is used, and when $\alpha = 1$, $L_1$ regularization (the lasso penalty) is used.

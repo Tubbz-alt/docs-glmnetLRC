@@ -1,0 +1,169 @@
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc" />
+
+    <meta name="author" content="Landon Sego" />
+  
+  
+  <title>glmnetLRC</title>
+
+    <script src="assets/jquery-1.11.0/jquery.min.js"></script>
+  <link href="assets/bootstrap-3.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="assets/bootstrap-3.3.2/js/bootstrap.min.js"></script>
+  <script src="assets/bootstrap-3.3.2/shim/html5shiv.min.js"></script>
+  <script src="assets/bootstrap-3.3.2/shim/respond.min.js"></script>
+  <link href="assets/highlight-8.4/tomorrow.css" rel="stylesheet" />
+  <script src="assets/highlight-8.4/highlight.pack.js"></script>
+  <link href="assets/fontawesome-4.3.0/css/font-awesome.min.css" rel="stylesheet" />
+  <script src="assets/stickykit-1.1.1/sticky-kit.min.js"></script>
+  <script src="assets/jqueryeasing-1.3/jquery.easing.min.js"></script>
+  <link href="assets/packagedocs-0.0.1/pd.css" rel="stylesheet" />
+  <script src="assets/packagedocs-0.0.1/pd.js"></script>
+  <script src="assets/packagedocs-0.0.1/pd-collapse-toc.js"></script>
+  
+  
+  
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+
+<body>
+
+  
+  <header class="navbar navbar-white navbar-fixed-top" role="banner" id="header">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+                <span class="navbar-brand">
+<a href="http://pnnl.github.io"> <img src='figures/icon.png' alt='PNNL icon' width='30px' height='30px' style='margin-top: -3px;'> </a>
+        </span>
+                <a href="index.html" class="navbar-brand page-scroll">
+        glmnetLRC - Elastic-Net LRC
+        </a>
+      </div>
+            <nav class="collapse navbar-collapse" role="navigation">
+        <ul class="nav nav-pills pull-right">
+<li class="active">
+<a href='index.html'>Docs</a>
+</li>
+<li>
+<a href='rd.html'>Package Ref</a>
+</li>
+<li>
+<a href='https://github.com/pnnl/Smisc'>Github <i class='fa fa-github'></i></a>
+</li>
+        </ul>
+      </nav>
+          </div>
+  </header>
+
+  <!-- Begin Body -->
+  <div class="container">
+    <div class="row">
+            <div class="col-md-3" id="sidebar-col">
+        <div id="toc">
+          <ul>
+          <li><a href="#introduction">Introduction</a><ul>
+          <li><a href="#package-installation">Package installation</a></li>
+          </ul></li>
+          <li><a href="#vignette">Vignette</a><ul>
+          <li><a href="#training">Training</a></li>
+          </ul></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-9" id="content-col">
+      
+<div id="content-top"></div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The <code>glmnetLRC</code> package makes it easy to construct a binary classifier from virtually any number of quantitative predictors that will assign an example, or observation, to one of two classes. It extends the <a href="https://cran.r-project.org/web/packages/glmnet/index.html">glmnet</a> package by making it possible to train lasso or elastic-net logistic regression classifiers (LRC’s) using a customized, discrete loss function to measure the classification error. This allows users to assign unique loss values to false positive and false negative errors. The logistic regression parameter estimates are obtained by maximizing the elastic-net penalized likelihood function that contains several tuning parameters. These tuning parameters are estimated by minimizing the expected loss, which is calculated using cross validation. These online documents contain</p>
+<ul>
+<li><a href="rd.html">Standard documentation</a> for each function</li>
+<li>A vignette showing how to use the pacakge from start to finish</li>
+<li>Mathematical details</li>
+</ul>
+<div id="package-installation" class="section level2">
+<h2>Package installation</h2>
+<p>Begin by installing dependencies from <a href="http://cran.r-project.org">CRAN</a>:</p>
+<pre><code>install.packages(c(&quot;devtools&quot;, &quot;glmnet&quot;, &quot;plyr&quot;))</code></pre>
+<p>The <a href="http://pnnl.github.io/Smisc">Smisc</a> package (which is imported by <code>glmnetLRC</code>) contains C code and requires compilation. To do this * on a Mac, you’ll need <a href="http://developer.apple.com/xcode/">Xcode</a> * on Windows, you’ll need to install <a href="http://cran.r-project.org/bin/windows/Rtools/">R tools</a> * on Linux, compilation should take place “automatically”</p>
+<p>With the compilation tools in place, you can now install the <code>Smisc</code> and <code>glmnetLRC</code> packages from <a href="http://github.com/pnnl">the PNNL github site</a> as follows:</p>
+<pre><code>devtools::install_github(&quot;pnnl/Smisc&quot;)
+devtools::install_github(&quot;pnnl/glmnetLRC&quot;)</code></pre>
+<p>Now load the package as usual:</p>
+<pre class="r"><code>library(glmnetLRC)</code></pre>
+</div>
+</div>
+<div id="vignette" class="section level1">
+<h1>Vignette</h1>
+<p>The methods in the <code>glmnetLRC</code> package were originally implemented to automate the process of determining the curation quality of mass spectrometry samples (<a href="http://pubs.acs.org/doi/abs/10.1021/pr401143e">Amidan, et al 2014</a>). Those same data will be used here to demonstrate how to train your own classifier. In the sections that follow, we show how to use the <code>glmnetLRC</code> package to train LRC models, create diagnostic plots, extract coefficients, predict the binary class of new observations, and summarize the performance of those predictions.</p>
+<div id="training" class="section level2">
+<h2>Training</h2>
+<p>Let’s begin by loading the package and the training data:</p>
+<pre class="r"><code># Load the VOrbitrap Shewanella QC data
+data(traindata)
+
+# A view of first two rows and first 12 columns
+traindata[1:2, 1:12]</code></pre>
+<pre><code>      Instrument_Category Instrument Dataset_ID Acq_Time_Start Acq_Length
+pt701           VOrbitrap VOrbiETD03     251690     12/31/2011         98
+pt702           VOrbitrap VOrbiETD03     251706       1/1/2012         98
+                                          Dataset Dataset_Type
+pt701 QC_Shew_11_06_col2A_30Dec11_Cougar_11-10-11      HMS-MSn
+pt702 QC_Shew_11_06_col2C_30Dec11_Cougar_11-10-11      HMS-MSn
+      Curated_Quality XIC_WideFrac XIC_FWHM_Q1 XIC_FWHM_Q2 XIC_FWHM_Q3
+pt701            good     0.297090     19.3820     21.1900     24.3149
+pt702            good     0.305519     19.3785     21.1812     24.3262</code></pre>
+<pre class="r"><code># Columns 9 to 96 contain various measures of dataset quality that
+# we will use to predict the &quot;Curated_Quality&quot;
+predictors &lt;- as.matrix(traindata[,9:96])</code></pre>
+<p>We fit the LRC model by calling <code><a target='_blank' href='rd.html#glmnetlrc'>glmnetLRC()</a></code>, which requires a binary response variable, coded as a <code>factor</code>. The order in which the response variable is coded is important. Specifically, the class we want to predict with the greatest sensitivity should be encoded as the second level. To illustrate how this is done, consider the Shewanella QC data, where the objective is to be sensitive to predicting poor datasets. Hence we code <code>poor</code> last, as follows:</p>
+<pre class="r"><code>response &lt;- factor(traindata$Curated_Quality,
+                   levels = c(&quot;good&quot;, &quot;poor&quot;),
+                   labels = c(&quot;good&quot;, &quot;poor&quot;))
+
+levels(response)</code></pre>
+<pre><code>[1] &quot;good&quot; &quot;poor&quot;</code></pre>
+<p>Using <code><a target='_blank' href='rd.html#glmnetlrc'>glmnetLRC()</a></code>, we can define a discrete loss matrix. For the curation of dataset quality, predicting <code>good</code> when the dataset is <code>poor</code> is considerably worse (Loss = 5) than predicting <code>poor</code> when the dataset is <code>good</code> (Loss = 1). Correct predictions receive a penalty of zero loss:</p>
+<pre class="r"><code># Define the loss matrix
+lM &lt;- lossMatrix(c(&quot;good&quot;,&quot;good&quot;,&quot;poor&quot;,&quot;poor&quot;),
+                 c(&quot;good&quot;,&quot;poor&quot;,&quot;good&quot;,&quot;poor&quot;),
+                 c(     0,     1,     5,     0))
+
+# Observe the structure of the loss matrix
+lM</code></pre>
+<pre><code>           Predicted.good Predicted.poor
+Truth.good              0              1
+Truth.poor              5              0</code></pre>
+<p>To train an elastic-net model, the user needs to supply a handful of arguments to <code><a target='_blank' href='rd.html#glmnetlrc'>glmnetLRC()</a></code>. The mandatory arguments are the true class labels, <code>truthLabels</code> (which, in this case, is, is the <code>response</code> object we created above), the matrix of predictor variables, <code>predictors</code>, and the loss matrix <code>lossMat</code>. Noteworthy additional arguments include <code>tauVec</code>, a vector of potential values of the threshold parameter <span class="math inline"><em>τ</em> ∈ (0, 1)</span> that are used to dichotomize the predicted probabilities from the logistic regression into two class labels; <code>alphaVec</code>, a vector of potential values of the elastic-net mixing parameter <span class="math inline"><em>α</em> ∈ [0, 1]</span>; <code>cvFolds</code>, the number of cross validation folds; <code>cvReps</code>, the number of times the cross validation process is repeated with a different random partition of the data, and <code>masterSeed</code>, which controls the partitioning of the data into the cross validation folds. Keep in mind that <span class="math inline"><em>α</em></span> governs the tradeoff between the two regularization penalties. When <span class="math inline"><em>α</em> = 0</span>, <span class="math inline"><em>L</em><sub>2</sub></span> regularization (the ridge penalty) is used, and when <span class="math inline"><em>α</em> = 1</span>, <span class="math inline"><em>L</em><sub>1</sub></span> regularization (the lasso penalty) is used.</p>
+</div>
+</div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <div id="footer">
+    <div class="container">
+      <div class="col-md-6">
+                <p>&copy; Battelle Memorial Institute, 2016</p>
+              </div>
+      <div class="col-md-6">
+        <p class="pull-right">created with <a href="https://github.com/hafen/packagedocs">packagedocs</a></p>
+      </div>
+    </div>
+  </div>
+
+  
+</body>
+</html>

@@ -1,0 +1,888 @@
+# Introduction
+
+The `Smisc` package is a collection of functions for statistical computing and data manipulation that I created to 
+facilitate my day-to-day work in R.  Each function operates (more or less) on its own, designed for a specific task. As such, there are very few classes or methods in the package. 
+
+I have organized the documentation into 11 groups of functions that have similar themes.  I provide below a brief synopsis of the motivation for each of the functions in the package, leaving the details to the standard help files, which you can find by following the `r rdl("bold blue links")`.
+
+---Landon Sego
+
+## Package installation 
+
+Before you get started, the source code of the `Smisc` package contains C code that requires compilation:  
+
+- Mac: you'll need [Xcode](https://developer.apple.com/xcode/)
+- Windows: you'll need to install [R tools](http://cran.r-project.org/bin/windows/Rtools/)
+- Linux/Unix: compilation should take place automatically
+
+Then, installation is made easy with [devtools](https://cran.r-project.org/web/packages/devtools/index.html):
+```{r instal, eval = FALSE, echo = TRUE}
+# If devtools is not already installed
+install.packages("devtools") 
+
+devtools::install_github("pnnl/Smisc")
+```
+Now load the package as usual:
+```{r loadpackage, eval = TRUE, echo = TRUE}
+library(Smisc)
+```
+
+# Data ingestion
+
+## Load objects to a name of choice
+I always found it a bit annoying how `load()` places the object(s) in the `.Rdata` file into `.GlobalEnv` without immediately telling you what the name(s) of the object is (are).  `r rdl("loadObject()")` makes it easy to assign the contents of the `.Rdata` file to an object of my choice, like this:
+```{r loadObject, eval = FALSE, echo = TRUE}
+myName <- loadObject("~/aDir/aFile.Rdata")
+```
+
+## Flexibly ingest data
+`r rdl("dataIn()")` provides a flexible way to ingest data into R. It takes a single argument that can be the filename of an `.Rdata` or `.csv` file, a package dataset, or an existing data frame. It returns a data frame.  Each of these, in principle, would achieve the same result, regardless of the format of the input data:
+```{r dataIn, eval = FALSE, echo = TRUE}
+# Read a csv file
+d <- dataIn("someData.csv")
+
+# Load a .Rdata file
+d <- dataIn("someData.Rdata")
+
+# If the dataframe already exists as "someData"
+d <- dataIn(someData)
+
+# If "someData" is in the package "somePackage"
+d <- dataIn("somePackage::someData")
+```
+
+# Operations on dataframes and matrices
+
+## Identify missing columns or rows
+Sometimes it's handy to know whether all the elements in a given row (or column) of a matrix or data frame are missing.  `r rdl("allMissing()")` returns a logical vector indicating whether all the elements in a row (or column) are missing.  It's a nice compliment to [complete.cases()](http://www.inside-r.org/r-doc/stats/complete.cases).
+```{r allMissing, echo = TRUE, eval = TRUE}
+# A dataframe with a missing column
+m <- data.frame(A = rnorm(3), B = NA, C = letters[3])
+m
+allMissing(m, byRow = FALSE)
+```
+
+## Compare two data frames
+`r rdl("dframeEquiv()")` compares two data frames (or two matrices) and determines whether they are equivalent or how they differ.
+```{r dframeEquiv, echo = TRUE, eval = TRUE}
+# Create two slightly different data frames
+d1 <- data.frame(A = 1:2, B = c("a", "b"))
+d2 <- data.frame(A = 1:2, B = c("a", "c"))
+
+# Compare the dataframes
+compare <- dframeEquiv(d1, d2)
+```
+We can see the locations by index where the dataframes differ:
+```{r dframeEquiv2, echo = TRUE, eval = TRUE}
+compare$loc.inequiv
+```
+And we can see a logical matrix indicating where they differ:
+```{r dframeEquiv3, echo = TRUE, eval = TRUE}
+compare$equiv.matrix
+```
+
+## Rapidly combine or bind numerous objects 
+Have you ever needed to row bind, [rbind()](http://www.inside-r.org/r-doc/base/rbind), or column bind, [cbind()](http://www.inside-r.org/r-doc/base/cbind), or combine/concatenate, [c()](http://www.inside-r.org/r-doc/base/c), *numerous* objects, usually of the same type?  If you do it iteratively, you'll slow your machine to a crawl:
+```{r qbind1, eval = FALSE, echo = TRUE}
+# The names of the 100 matrices, m1, m2, ..., m100
+mNames <- paste("m", 1:100, sep = "")
+
+# Initialize the combined object
+combined <- NULL
+
+# Now wait forever
+for (m in mNames) {
+  combined <- rbind(combined, get(m))
+}
+```
+`r rdl("qbind()")` provides a syntactically simple and fast solution:
+```{r qbind2, eval = FALSE, echo = TRUE}
+# The names of the 100 matrices, m1, m2, ..., m100
+mNames <- paste("m", 1:100)
+
+# Now combined using `rbind()`
+combined <- qbind(mNames, type = "row")
+```
+## Row bind heterogenous matrices
+Have you ever needed to row bind multiple matrices together that didn't all have the same column names?  `r rdl("smartRbindMat()")` function rapidly row binds them together by creating a final matrix with the union of the columns of the source matrices.
+```{r smartRbindMat, eval = TRUE, echo = TRUE}
+x <- as.matrix(data.frame(a = 1:2, b = 3:4))
+y <- as.matrix(data.frame(a = 1:2, c = 5:6))
+z <- as.matrix(data.frame(b = 7:8, d = 9:10))
+smartRbindMat(x, y, z)
+```
+
+## Consistently select rows or columns
+Have you ever selected a single row or column from a dataframe or matrix only to have R return an object structured in a way you weren't expecting?  `r rdl("select()")` makes R's behavior consistent, always returning a matrix or dataframe with a single row or column, if necessary. It is especially useful in the situation where the number of rows or columns to be selected is variable and not necessarily known before hand.
+```{r select, eval = TRUE, echo = TRUE}
+# A simple dataframe
+x <- data.frame(a = 1:2, b = 3:4)
+
+# If we select a single column the usual way, we get a vector:
+x[,1]
+
+# But if we use select(), we get a single column dataframe
+select(x, 1)
+```
+
+## Sort a dataframe
+`r rdl("sortDF()")` provides a simple interface for sorting a dataframe by as many variables as you like, using a formula-style argument to indicate whether the variables are sorted in increasing or decreasing order.
+```{r sortDF, eval = TRUE, echo = TRUE}
+d1 <- data.frame(A = 2:1, B = c("a", "b"))
+
+# Sort by A
+sortDF(d1, ~ A)
+
+# Sort by descending B
+sortDF(d1, ~ -B)
+
+# Sort by A and B
+sortDF(d1, ~ A + B)
+```
+
+# Conversion to and from lists
+The longer I program in R, the more I use lists--especially for parallelized computations. This often requires converting lists to dataframes, dataframes to lists, or breaking a list apart and storing the elements as separate objects.
+
+## Row-wise conversion of a dataframe to a list
+`r rdl("df2list()")` converts a dataframe to a list, in a row-wise fashion (as opposed to [as.list()](http://www.inside-r.org/r-doc/base/as.list), which converts in a column-wise fashion):
+```{r df2list, eval = TRUE, echo = TRUE}
+d <- data.frame(a = 1:2, b = letters[1:2])
+d
+df2list(d)
+```
+
+## Convert a list to a dataframe
+I use `r rdl("list2df()")` probably more than any other `Smisc` function. It converts a list of suitable object types (vectors, dataframes, or lists) into a single dataframe.  It's especially useful for collecting the output from [strsplit()](http://www.inside-r.org/r-doc/base/strsplit), or the results from [lapply()](http://www.inside-r.org/r-doc/base/lapply).
+```{r list2df, eval = TRUE, echo = TRUE}
+z <- list(a = c(first = 10, second = 12), b = c(first = 15, second = 17))
+z
+list2df(z)
+```
+
+## Separate a list into separate objects
+On occasion, it is useful to break a list into its separate elements and not have to refer to them using the list name.  `r rdl("sepList()")` makes it easy:
+```{r sepList, eval = TRUE, echo = TRUE}
+# A simple list that we'll separate
+aList <- list(x1 = 10, x2 = "a") 
+sepList(aList)
+
+# 'x1' is now in the Global environment:
+x1
+# And so is 'x2'
+x2
+```
+
+# Converting factors
+
+Managing factors in R is a regular chore.  `r rdl("factor2character()")` and `r rdl("factor2numeric()")` make that easier.  I also added a somewhat related function to this group, `r rdl("as.numericSilent()")`, because I wasn't sure where else to put it.
+
+## Convert factors to character variables in a dataframe
+When creating a dataframe, the default behavior of R is to render all character variables as factors---which you may not want.  `r rdl("factor2character()")` will convert all the factor variables in a dataframe to character.
+```{r factor2character, eval = TRUE, echo = TRUE}
+myData <- data.frame(x = 10, y = "a", z = "b")
+str(myData)
+
+myData1 <- factor2character(myData)
+str(myData1)
+```
+
+## Convert factor to numeric
+Naively attempting to convert a factor to a numeric vector can easily go wrong.  For example,  [as.numeric()](http://www.inside-r.org/r-doc/base/as.numeric) probably won't give you what you're looking for. `r rdl("factor2numeric()")` correctly converts a factor to a numeric vector.
+```{r factor2numeric, echo = TRUE, eval = TRUE}
+x <- factor(c(4, 7))
+x
+
+# Wrong
+as.numeric(x)
+
+# Right
+factor2numeric(x)
+```
+
+## Convert to numeric, if possible
+`r rdl("as.numericSilent()")` is used by `r rdl("list2df()")` to create numeric variables if possible in the resulting dataframe.  It can also be used to attempt the conversion of any vector to a numeric vector.  If any warnings or errors are produced in the attempt, conversion to numeric does not take place, and the original vector is returned.
+```{r as.numericSilent, echo = TRUE, eval = TRUE}
+# A character vector of numbers
+x <- c("1", "2", "3")
+
+# Conversion takes place
+as.numericSilent(x)
+
+# A character vector of letters
+y <- c("a", "b", "c")
+```
+```{r as.numericSilent1, echo = TRUE, eval = FALSE}
+# Conversion is not possible, so the original character vector is returned 
+# with no complaints
+as.numericSilent(y)
+```
+<!-- No clue why we get strange output from as.numericSilent(y) when it builds. It works fine in the console -->
+
+    [1] "a" "b" "c"
+
+# Filename manipulation
+
+Early on in my R career I noticed that dealing with filenames was a regular activity.  This set of functions makes it easier to manipulate filenames by removing extensions or paths, or by grabbing the extension or path from files. A simple function for 
+embedding a time stamp in a filename is included, along with a function to pad numeric strings with 0's, which can also be useful in managing filenames.
+
+## Get a filename extension
+
+`r rdl("getExtension()")` grabs the characters that make up the extensions of a vector of filenames.
+```{r getExtension, eval = TRUE, echo = TRUE}
+getExtension(c("~/aDir/aFile.txt", "anotherFile.R"))
+```
+## Get the path of a filename
+
+`r rdl("getPath()")` grabs the characters that make up the pathname of a vector of filenames.
+```{r getPath, eval = TRUE, echo = TRUE}
+getPath(c("~/aDir/aFile.txt", "anotherFile.R"))
+```
+
+## Strip a the extension from a filename
+
+`r rdl("stripExtension()")` removes the characters that make up the extensions of a vector of filenames.
+```{r stripExtension, eval = TRUE, echo = TRUE}
+stripExtension(c("~/aDir/aFile.txt", "anotherFile.R"))
+```
+
+## Strip the path from a filename
+
+`r rdl("stripPath()")` removes the characters that make up the pathname of a vector of filenames.
+```{r stripPath, eval = TRUE, echo = TRUE}
+stripPath(c("~/aDir/aFile.txt", "anotherFile.R"))
+```
+
+## Get the last set of characters after a delimiter
+
+`r rdl("grabLast()")` is a more general function that is very similar to `r rdl("getExtension()")`:  it selects
+the final set of characters that appear after a single-character delimiter.  It is used by `r rdl("getExtension()")` and
+`r rdl("stripPath()")`.
+```{r grabLast, eval = TRUE, echo = TRUE}
+grabLast("some_new_stuff", "_")
+```
+
+## Embed a timestamp in a filename
+
+`r rdl("timeStamp()")` embeds a the current date and time into the name of a file.
+```{r timeStamp, eval = TRUE, echo = TRUE}
+timeStamp("thisFile", "txt")
+```
+
+## Pad a numeric value with zeros
+
+`r rdl("padZero()")` pads a numeric vector with zeros so that each element in the vector either has the same number of characters or the same number of trailing decimal places.  This can be helpful in managing multiple files where files are sorted alpha-numerically.
+```{r padZero, eval = TRUE, echo = TRUE}
+# These files will sort in numeric order with the padded zeros
+paste("fileNumber_", padZero(c(1, 10, 100)), ".txt", sep = "")
+
+# An example of adding 0's to the right side
+padZero(c(1.2, 1.34, 1.399), side = "r")
+```
+# Programming tools
+
+The following functions are designed to make writing code in R a little easier, whether you're writing scripts, functions, or developing packages.
+
+## Generate a hard-coded vector
+
+When writing a script for analysis, have you ever wanted to select a bunch of columns (by name) in a dataframe, and had to extensively edit the output of [colnames(myData)](http://www.inside-r.org/r-doc/base/colnames) in order to have some tidy code in your script?  `r rdl("hardCode()")` makes it easy to do this:
+```{r hardCode, eval = TRUE, echo = TRUE}
+myData <- data.frame(a = 1:4, 
+                     b = letters[1:4], 
+                     c = rep(c(TRUE, FALSE), each = 2), 
+                     d = rnorm(4))
+```
+```{r hardCode1, eval = FALSE, echo = TRUE}
+hardCode(colnames(myData)[-1], vname = "myNewCols", vert = FALSE)
+```
+Pay close attention:  what you see below *is the output* from the call to `r rdl("hardCode()")` that appears in the R console:
+
+    myNewCols <- c("b", "c", "d")   
+
+Then you can copy and paste the code snippet above into your script and use it to select a subset of the data:
+```{r hardCode2, eval = TRUE, echo = TRUE}
+myNewCols <- c("b", "c", "d")
+myData[,myNewCols]
+```
+Granted, this is a trivial example, but when you have dozens of columns, this can make life a little easier.  `r rdl("hardCode()")` can be used for more than just selecting column names: it can be used to hard code any type of vector that you might want to copy into a script.
+
+## Display the contents of a text file
+
+`r rdl("more()")` prints the contents of a text file (stored on disk) in the R console, just like the [more](https://en.wikipedia.org/wiki/More_(command)) command in Unix---making it easy to see what's in a file without having to leave the R console.
+```{r more1, echo = TRUE, eval = TRUE}
+# Write a simple text file
+cat("Here's a simple\n", "text file\n", 
+    file = "simpleFile.txt", sep = "")
+
+# Display using more()
+more("simpleFile.txt")
+```
+```{r more2, echo = FALSE, eval = TRUE}
+unlink("simpleFile.txt")
+```
+
+## Print the object name and its value
+
+`r rdl("pvar()")` stands for *print variable*, which makes it easy to see both the name and the value of an R object.  `r rdl("pvar()")` is particularly useful for displaying the value of objects that are atomic (i.e. of length 1).  
+```{r pvar1, eval = TRUE, echo = TRUE}
+x <- "gratican"
+y <- 3.14
+pvar(x, y)
+```
+I often use it to troubleshoot loops, where I'd like to see the value of variables as the code progresses through the loop:
+```{r pvar2, eval = TRUE, echo = TRUE}
+for (i in 1:2) {
+  for (j in c("a", "b")) {
+    pvar(i, j)
+  }
+}
+```
+
+## Flexibly select valid elements from a character vector
+
+I often write functions where one or more of the arguments are a vector of column names (or numbers) that will be selected from a dataframe.  `r rdl("selectElements()")` provides a mechanism for selecting the columns using three different methods (a character vector of column names, a numeric vector of column numbers, or a logical vector) and it checks that the selection provided by the user is correct.
+```{r selectElements1, eval = TRUE, echo = TRUE}
+# Define a dataframe
+myData <- data.frame(a = 1:2, b = letters[1:2], c = c(TRUE, FALSE), d = rnorm(2))
+
+# Simple function that will subset the dataframe
+makeSelection <- function(data, sel) {
+  myData[,selectElements(sel, colnames(data))]
+}
+
+# Select columns using a 3 equivalent approaches
+makeSelection(myData, c("a","d"))
+makeSelection(myData, c(1, 4))
+makeSelection(myData, c(TRUE, FALSE, FALSE, TRUE))
+```
+```{r selectElements2, eval = FALSE, echo = TRUE}
+# And if we choose an incorrect column, it lets us know
+makeSelection(myData, c("a", "e"))
+```
+    Error in selectElements(sel, colnames(data)) :
+      An invalid value was chosen in 'elements': 'e' is not in 'cVec'
+
+While this example focuses on column names, `r rdl("selectElements()")` can be used to select the elements from any character vector.
+
+## Source all R files in a directory
+`r rdl("sourceDir()")` sources all the files with `.R` or `.r` extensions in a directory. If a file fails to source correctly, an informative error message is printed--but it doesn't prevent the remainder of the files from being sourced.  This is especially useful in package development, allowing you to quickly check that all the R code sources correctly prior to building the package:
+```{r sourceDir, echo = TRUE, eval = FALSE}
+sourceDir("~/R-packages/myPackage/R")
+```
+
+## Customized error message for stopifnot()
+
+The [stopifnot()](http://www.inside-r.org/r-doc/base/stopifnot) function is super useful for basic sanity checks of functional arguments, ensuring that the arguments supplied by a user have the correct type, length, class, etc.  `r rdl("stopifnotMsg()")` extends [stopifnot()](http://www.inside-r.org/r-doc/base/stopifnot) by making it easy to throw a customized error message for each condition that is checked.
+```{r stopifnotMsg1, echo = TRUE, eval = TRUE}
+# A simple function
+aFunction <- function(x, a = "text") {
+     
+  # Check the arguments of the function
+  stopifnotMsg(is.numeric(x),   "'x' must be numeric",
+               x > 0,           "'x' must be positive",
+               is.character(a), "'a' must be character")
+
+  return("You nailed it")
+
+}
+
+# This runs without error
+aFunction(12, a = "new")
+```
+```{r stopifnotMsg2, echo = TRUE, eval = FALSE}
+# This produces an error with 2 messages:
+aFunction(-1, a = 7)
+```
+    Error: aFunction(-1, a = 7)
+    'x' must be positive
+    'a' must be character
+
+## Time the execution of an expression
+
+`r rdl("timeIt()")` times the execution of an R expression, where the default unit of time depends on how long the expression runs, i.e., if it runs for hours, time is measured in hours; if it runs in seconds, time is measured in seconds, etc.
+```{r timeIt, echo = TRUE, eval = TRUE}
+y <- timeIt(mean(rnorm(10^7)))
+y
+```
+
+## Remove all objects
+A call to `r rdl("rma()")` removes all the objects in the Global Environment.
+
+# Parallelization
+There are a number of packages out there that enable parallelization of R.  The parallelization functions in the `Smisc` package are not meant to replace them, but rather, make them easier to use---especially for Windows users. For the most part, I rely on the [parallel](https://stat.ethz.ch/R-manual/R-devel/library/parallel/doc/parallel.pdf) package for parallelization.  These functions are designed to run on a single, multi-core workstation (as opposed to a cluster with multiple nodes).
+
+## Parallelize lapply(), a wrapper for parLapply()
+`r rdl("parLapplyW()")` parallelizes [lapply()](http://www.inside-r.org/r-doc/base/lapply), and is a wrapper for [parLapply()](http://www.inside-r.org/r-doc/parallel/parLapply). `r rdl("parLapplyW()")` makes makes it easy to start the cluster, prepare the workers by exporting variables and/or evaluating expressions, run the [lapply()](http://www.inside-r.org/r-doc/base/lapply) in parallel, and then shut down the cluster---all in one function call.  If the job fails, the cluster is shut down without consequence.  
+
+Let's look at two workflows that produce the same result, one using the individual functions of the [parallel](https://stat.ethz.ch/R-manual/R-devel/library/parallel/doc/parallel.pdf) package, and the second using `r rdl("parLapplyW()")`.  Here are some preliminary objects that both workflows will need:
+```{r parLapplyW1, eval = TRUE, echo = TRUE}
+# A vector we'll process using f1
+x1 <- rnorm(4)
+
+# An object that f1 needs
+b <- 7
+
+# The function we'll apply to x1
+f1 <- function(x1) {
+  x1 + b + 5
+}
+```
+Here's the first workflow, not using `r rdl("parLapplyW()")`
+<!-- This code block fails for some reason--it can't find the object "b".  But it runs fine in the console -->
+```{r parLapplyW2, eval = FALSE, echo = TRUE}
+# Start the cluster
+cl <- parallel::makeCluster(2)
+
+# Export the 'b' object to the nodes
+parallel::clusterExport(cl, "b")
+
+## Call parLapplyW()
+res1 <- parallel::parLapply(cl, x1, f1)
+
+# Shut down the cluster
+parallel::stopCluster(cl)
+```
+And here's the second workflow, accomplished with a single call to `r rdl("parLapplyW()")`:
+```{r parLapplyW3, eval = TRUE, echo = TRUE}
+res2 <- parLapplyW(x1, f1, njobs = 2, varlist = "b")
+```
+Last of all, the results are the same:
+```{r parLapplyW4, eval = TRUE, echo = FALSE}
+## This little cheat because the parLapply() code fail during ./build--but it runs fine in the console
+res1 <- res2
+```
+```{r parLapplyW5, eval = TRUE, echo = TRUE}
+identical(res1, res2)
+```
+
+## Parallelize lapply() with convenient debugging and more
+`r rdl("plapply()")`, like `r rdl("parLapplyW()")`, is also a parallelization of [lapply()](http://www.inside-r.org/r-doc/base/lapply) for a single workstation. `r rdl("plapply()")` differs from other parallelized implementations of [lapply()](http://www.inside-r.org/r-doc/base/lapply) in that it more intensively reads and writes to disk to manage the parallelization process. It spawns a separate batch instance of R for each parallel job, with each instance producing its own `.Rout` file that can be investigated for errors and warnings. While `r rdl("plapply()")` will be a bit slower than other parallel methods (especially for small jobs) because of the i/o to disk, it contains a number of features that are not readily available in other parallelization functions:
+
+-  The `.Rout` files produced by each R instance are easily accessible for convenient debugging of errors or warnings. The `.Rout` files can also serve as an explicit record of the work that was performed by the workers
+- Three options are available for the ordering of the processing of the list elements: the original list order, randomized, or collated (first-in-first-out)
+- In each R instance, pre-processing or post-processing steps can be performed before and after the call to [lapply()](http://www.inside-r.org/r-doc/base/lapply). These pre-processing and post-processing steps can depend on the instance of R,
+ such that each instance can be treated differently, if desired
+
+These features give greater control over the computing process, which can be especially useful for large jobs.
+
+The call to `r rdl("plapply()")` is straightforward.  Here's what it looks like for the same example discussed above for `r rdl("parLapplyW()")`:
+```{r plapply, eval = TRUE, echo = TRUE}
+res3 <- plapply(x1, f1, njobs = 2, needed.objects = "b")
+```
+The result is the same as that produced by `r rdl("parLapplyW()")` and [lapply()](http://www.inside-r.org/r-doc/base/lapply):
+```{r plapply1, eval = TRUE, echo = TRUE}
+# Same as parLapplyW()
+identical(res2, res3)
+
+# Same as lapply()
+identical(res3, lapply(x1, f1))
+```
+
+## Process rows of a dataframe in parallel with convenient debugging
+`r rdl("dfplapply()")`  applies a function to each row of a data frame in a parallelized fashion (by submitting multiple batch R jobs).  It is a convenient wrapper for `r rdl("plapply()")`, modified especially for parallel, single-row processing of data frames.
+```{r dfplapply, eval = TRUE, echo = TRUE}
+# A dataframe
+x <- data.frame(a = 1:2, b = 3:4)
+
+# A function that operates on a single row of the dataframe
+f <- function(x) {
+  x$c <- x$a + x$b
+  return(x)
+}
+
+# Process the dataframe in parallel
+dfplapply(x, f, njobs = 2, output.df = TRUE)
+```
+
+## Convenient wrapper for parallelization of ddply()
+`r rdl("pddply()")` is a wrapper for [plyr::ddply()](http://www.inside-r.org/packages/cran/plyr/docs/ddply) that makes it easier to use in parallel and supresses a spurious warning along the way. Here are two workflows that produce identical results using [plyr::ddply()](http://www.inside-r.org/packages/cran/plyr/docs/ddply) in parallel and `r rdl("pddply()")`.  First, some preliminaries:
+```{r pddply1, eval = TRUE, echo = TRUE, results = "hide"}
+# Load necessary packages
+loadNamespace("plyr")
+loadNamespace("foreach")
+
+# Load some baseball data from the plyr package
+data(baseball, package = "plyr")
+```
+Here's the workflow with [plyr::ddply](http://www.inside-r.org/packages/cran/plyr/docs/ddply):
+```{r pddply2, eval = TRUE, echo = TRUE}
+# Set up the cluster
+cl <- parallel::makeCluster(2)
+doParallel::registerDoParallel(cl)
+
+# Call plyr::ddply()
+res1 <- plyr::ddply(baseball, ~ year, nrow, .parallel = TRUE)
+
+# Shut down the cluster
+parallel::stopCluster(cl)
+```
+The same result can be accomplished with a single call to `r rdl("pddply()")`, without the spurious warning:
+```{r pddply3, eval = FALSE, echo = TRUE}
+res2 <- pddply(baseball, ~ year, nrow, njobs = 2)
+```
+```{r pddply4, eval = TRUE, echo = FALSE}
+# The above call to pddply() works just fine in the console, but not in when building the 
+# documentation (via ./build). Hence this little cheat.
+res2 <- res1
+```
+And the results are the same:
+```{r pddply5, eval = TRUE, echo = TRUE}
+identical(res1, res2)
+```
+
+## Call an expensive function in parallel
+Have you ever constructed a mathematical function that is expensive to compute?  If you need to evaluate that function at multiple real-valued points (e.g. for a plot), you might be waiting awhile.  `r rdl("doCallParallel()")` will let you easily make parallel calls to the function, provided the function accepts a vector for its first argument.  Parallelization is accomplished using   `r rdl("parLapplyW()")`.  Here's a trivial example to illustrate its simplicity:
+```{r doCallParallel, echo = TRUE, eval = TRUE}
+# Get a vector of normal data
+x <- rnorm(4)
+     
+# Calculate the cummulative probability using 2 cores
+doCallParallel(pnorm, x, njobs = 2)
+```
+
+## Parse job tasks into groups
+`r rdl("parseJob()")` is used by `r rdl("plapply()")` and `r rdl("doCallParallel()")` to split up a job into (almost) equal-sized groups for parallelization. It can be used more generally however, to create equal-sized groups for any purpose.
+```{r parseJob, eval = TRUE, echo = TRUE}
+# Make 2 groups out of seven elements
+parseJob(7, 2)
+
+# This time with randomly allocated elements
+parseJob(7, 2, random.seed = 1)
+```
+
+# Plotting tools
+
+## Open a graphics device based on the filename extension
+`r rdl("openDevice()")` opens the appropriate graphics device based on the filename extension of the first argument. This can be useful in creating packages that produce graphic files because allows the user to specify the type of output with minimal effort.
+```{r openDevice, eval = TRUE, echo = TRUE, results = "hide"}
+openDevice("out.pdf")
+plot(1:10, rnorm(10), type = "b")
+dev.off()
+```
+```{r openDevice1, eval = TRUE, echo = FALSE}
+unlink("out.pdf")
+```
+
+## Quickly plot one or more functions
+
+`r rdl("plotFun()")` makes it easy to plot one or more functions on a single plot. This is especially useful for plotting existing mathematical or statistical functions in R.  If the function(s) is/are expensive to calculate, parallel processing is available by simply setting `njobs > 1`.  Here's a simple example:
+```{r plotFun, eval = TRUE, echo = TRUE}
+# A handful of beta density functions, note how they take a single argument
+fList <- list(function(x) dbeta(x, 10, 10),
+              function(x) dbeta(x, 3, 3),
+              function(x) dbeta(x, 0.5, 0.50))
+
+# Plot all 3 beta densities on the same plot
+plotFun(fList, 
+        xlim = c(0.0001, 0.9999), 
+        ylim = c(0, 3.5),
+        col = c("Red", "Black", "Blue"), 
+        xlab = "x", ylab = expression(f(x)),
+        main = "Beta Densities")
+```
+
+## Create naturally spaced time axes
+
+Ever created a plot involving time and been dismayed at the rendering of the time axis?  `r rdl("smartTimeAxis()")` attempts to give you more control to create the time axis with interval spacings that are aesthetic and intuitive.   It is intended to be applied to periods of time that do not exceed 24 hours (i.e. it does not produce a date stamp in the time axis).  It spaces the ticks using intuitive intervals like 1 second, 5 seconds, 15 seconds, etc., or 1 minute, 2 minutes, 5 minutes, etc.
+
+Here's a plot using R's default time axis:
+```{r smartTimeAxis1, echo = TRUE, eval = TRUE}
+data(timeData)
+
+par(las = 2, mar = c(4, 4, 1, 0.5))
+
+plot(timeData, xlab = "", col = "Blue")
+```
+
+And here's the same plot using `r rdl("smartTimeAxis()")`.  Notice the intervals are 5 minutes apart, in a natural sequence (i.e., 0, 5, 10, ...) as opposed to something less natural (e.g., 2, 7, 12, ...):
+```{r smartTimeAxis2, echo = TRUE, eval = TRUE}
+par(las = 2, mar = c(4, 4, 1, 0.5))
+
+plot(timeData, axes = FALSE, frame.plot = TRUE, xlab = "", col = "Blue")
+
+# Add the y-axis
+axis(2)
+
+# Add the time axis
+smartTimeAxis(timeData$time, nticks = 20, time.format = "hh:mm")
+```
+
+## Draw a vertical error bar
+`r rdl("vertErrorBar()")`  draws a vertical error bar on a plot, like so:
+```{r vertErrorBar1, eval = TRUE, echo = FALSE}
+set.seed(343)
+```
+```{r vertErrorBar2, eval = TRUE, echo = TRUE}
+# Make a plot of some standard normal observations
+x <- 1:9
+y <- rnorm(9)
+plot(x, y, pch = as.character(1:9), ylim = c(-2, 2) + range(y),
+     ylab = "Z", xlab = "Indexes")
+     
+# Draw the error bars
+vertErrorBar(x, 0.3, center = y, barLength = 2 * 1.96, blankMiddle = 0.75)
+``` 
+
+## Interaction plot with vertical error bars
+
+`r rdl("interactionPlot()")`  plots the mean (or other summary) of the response for two-way combinations of factors, thereby illustrating possible interactions. It modifies [interaction.plot()](http://www.inside-r.org/r-doc/stats/interaction.plot) by making it possible to include error bars of the same length on the plot.
+```{r, interactionPlot1, eval = TRUE, echo = FALSE}
+set.seed(20)
+```
+
+```{r, interactionPlot2, eval = TRUE, echo = TRUE}
+# Generate some data with 2 factors and a response
+d <- data.frame(Factor_1 = c(rep("A", 10), rep("B", 10)),
+                Factor_2 = rep(c("C", "D"), each = 5),
+                Response = c(rnorm(5, mean = 5),
+                             rnorm(5, mean = 8),
+                             rnorm(5, mean = 7),
+                             rnorm(5, mean = 5.5)))
+
+# Get the MSE
+MSE <- summary(lm(Response ~ Factor_1 * Factor_2, data = d))$sigma^2
+
+# Calculate the total vertical length of the bars, based on Fisher's LSD
+LSD <- qt(0.05 / 2, 16, lower.tail = FALSE) * sqrt(2 * MSE / 5)
+
+# Plot Interation plot with LSD bars.  If the bars overlap, the two groups
+# are not significantly different per the LSD criterion
+with(d, interactionPlot(Factor_1, Factor_2, Response, las = 1,
+                        errorBar = list(barLength = LSD, width = 0.05),
+                        jitterErrorBars = list(factor = 0.2)))
+```
+
+# Statistical functions
+
+## Beta-binomial distribution functions
+
+The Beta-binomial distribution is the probability distribution of the number of successes in a fixed number of independent trials when the probability of success follows a Beta distribution.  Following the usual convention in R, `r rdl("dbb()")` gives the mass function, `r rdl("pbb()")` is the cdf, `r rdl("qbb()")` provides quantiles for a given probability, and 
+`r rdl("rbb()")` generates random draws.  Here's an example Beta-binomial mass function, with a U-shaped beta distribution:
+```{r dbb, eval = TRUE, echo = TRUE}
+x <- 0:10
+fx <- dbb(x, 10, 0.95, 0.95)
+plot(x, fx, xlab = "x", ylab = "P(X = x)", type = "h", 
+     main = c("N = 10, u = 0.95, v = 0.95"), font.main = 1)
+points(x, fx, pch = 19, col = "Blue") 
+```
+
+## Distribution of the sum of binomials with unequal *p*
+
+The distribution of the sum of binomial random variates with constant probability of success is well-known. When the probability of sucess varies, things are more complicated.  `r rdl("dkbinom()")` and `r rdl("pkbinom()")` provide the mass and distribution functions for the sum of an arbitrary number of binomial variates with different success probabilities.  Suppose *X ~ Bin(5, 0.7)* and *Y ~ Bin(7, 0.3)*.  Then *P(X + Y = 5)* is given by:
+```{r dkbinom, eval = TRUE, echo = TRUE}
+dkbinom(5, size = c(5, 7), prob = c(0.7, 0.3))
+```
+
+## A continuous version of the binomial cdf
+
+There are circumstances when a continuous version of the discrete binomial cdf can be useful, especially in root finding or optimization. `r rdl("pcbinom()")` is equivalent to [pbinom()](http://www.inside-r.org/r-doc/stats/pbinom) when the first argument is an integer.
+```{r pcbinom1, echo = TRUE, eval = TRUE}
+# These are the same
+pcbinom(7, 10, 0.5)
+pbinom(7, 10, 0.5)
+
+# But these are different
+pcbinom(7.5, 10, 0.5)
+pbinom(7.5, 10, 0.5)
+```
+The plot shows how the two functions intersect at the integers
+```{r pcbinom2, echo = TRUE, eval = TRUE}
+x <- seq(0, 10, length = 500)
+y1 <- pbinom(x, 10, 0.5)
+y2 <- pcbinom(x, 10, 0.5)
+plot(x, y1, type = "s", col = "Blue", xlab = "x", ylab = "F(x)")
+lines(x, y2, col = "Red")
+legend("topleft", c("pbinom()", "pcbinom()"), lty = 1, col = c("Blue", "Red"))
+```
+
+## Highest posterior density credible interval
+`r rdl("hpd()")` calculates the highest posterior density (HPD) credible interval for a unimodal density.  It requires that we provide a density function, and, if possible, a cdf for the distribution of interest.  If the density is expensive to calculate, parallel support is available by simply setting `njobs > 1`.  
+
+Suppose we were interested in making inference about a success probability whose posterior distribution is *Beta(7, 20)*.  We could calculate a 95% HPD credible interval as follows:
+```{r hpd1, echo = TRUE, eval = TRUE}
+# The beta pdf and cdf, expressed as functions with a single argument
+pdf <- function(x) dbeta(x, 7, 20)
+cdf <- function(x) pbeta(x, 7, 20)
+
+# The hpd interval object
+hpdInt <- hpd(pdf, c(0, 1), prob = 0.95, cdf = cdf)
+
+# Print the interval
+print(hpdInt)
+
+# Plot the interval with the density
+plot(hpdInt)
+```
+
+## UMVUEs of lognormal parameters
+The uniformly minimum variance unbiased estimator (UMVUE) of a lognormal mean is a handful to calculate.  `r rdl("umvueLN()")` calculates the UMVUE of the mean, the standard error of the mean, and the standard deviation of lognormal data, using the formulae presented in Gilbert's *Statistical Methods for Environmental Pollution Monitoring* (1987).  Here's a simple example:
+```{r umvueLN, echo = TRUE, eval = TRUE}
+# Some lognormal data
+x <- exp(rnorm(50, mean = 0.1, sd = 0.5))
+
+# The UMVUE's of the lognormal parameters
+umvueLN(x)
+```
+
+# Time series
+
+## Format dates or datetimes
+`r rdl("formatDT()")` makes it easy to convert a vector of dates or datetimes (expressed as character strings) into a variety of formats. A couple of examples:
+```{r formatDT, eval = TRUE, echo = TRUE}
+formatDT("03/12/2004", date.outformat = "dd-mon-yyyy")
+formatDT("17-Sep-1782 4:31pm", date.outformat = "yyyy-mm-dd", time.outformat = "hh:mm")
+```
+
+## Calculate a moving window dot product
+Have you ever been frustrated by the behavior of [filter()](http://www.inside-r.org/r-doc/stats/filter) near the edges of a time series---or miffed by how it handles NA's?  `r rdl("smartFilter()")` gracefully handles the beginning and end of a time series, as well as NA's, by re-normalizing the filter weights as needed.  Let's apply [filter()](http://www.inside-r.org/r-doc/stats/filter) to calculate a moving average consisting of 3 data points:
+```{r smartFilter1, eval = TRUE, echo = TRUE}
+# A vector
+x <- 2^(0:8)
+x[4] <- NA
+x
+
+# The weights
+wts <- rep(1, 3) / 3
+wts
+
+# Call filter()
+filter(x, wts)
+```
+And `r rdl("smartFilter()")` applied to the same data:
+```{r smartFilter2, eval = TRUE, echo = TRUE}
+smartFilter(x, wts)
+```
+
+## Moving average with various kernels 
+`r rdl("movAvg2()")` will calculate the moving average using a 2-sided, symmetric window.  Just like `r rdl("smartFilter()")`, it gracefully handles the edges of time series and NA's by re-normalizing the weights as needed. The moving window weights can be based on the Gaussian kernel, exponential decay, linear decay, or simple uniform weights.  
+```{r movAvg2_1, eval = TRUE, echo = TRUE}
+# Some Gaussian noise
+x <- rnorm(50)
+
+# Calculate the moving average using 11 points (bandwidth of 5) 
+# and an Gaussian decay kernel:
+smooth_x <- movAvg2(x, bw = 5, type = "g")
+
+# Overlay smoothed series on the original data
+plot(1:50, x, type = "b", col = "Black", xlab = "Index", ylab = "x")
+lines(1:50, smooth_x, col = "Blue", lwd = 3)
+```
+
+And let's look at a plot of the weights that we used above:
+```{r movAvg2_2, eval = TRUE, echo = TRUE}
+movAvg2(bw = 5, type = "g", plot = TRUE)
+```
+
+## Align two time series
+Ever needed to take the difference between two time series that didn't have matching time indexes?  Or have you ever needed to align two time series? `r rdl("timeDiff()")` can perform both of these functions, even if the series have different lengths or frequencies.  
+
+Here are some data.  Notice how the two series have different, but roughly similar time stamps:
+```{r timeDiff1, eval = TRUE, echo = TRUE}
+data(timeDiff.eg)
+timeDiff.eg[1:2]
+```
+We can align them so they have a common set of time stamps:
+```{r timeDiff2, eval = TRUE, echo = TRUE}
+with(timeDiff.eg, timeDiff(x1, x2, full = TRUE))
+```
+I know the ouput looks a bit bewildering, but the best way to understand how the function aligns the time series is by studying the output of the examples (which are not shown here):
+
+    example(timeDiff)
+
+## Integration over time
+So you have a time series of instantaneous power consumption (in kilowatts) and you need to calculate kilowatt-hours?  `r rdl("timeIntegration()")` will do that quickly for you, illustrating visually how the integral was calculated:
+```{r timeInt1, eval = TRUE, echo = TRUE}
+data(PowerData)
+timeIntegration(PowerData,
+                lower = "5/6/2008 17:00:09",
+                upper = "5/6/2008 17:01:36",
+                units = "hours",
+                check.plot = TRUE)
+```
+More generally, `r rdl("timeIntegration()")` will approximate the area under any "curve" defined by the linear interpolation of data points, where the units of the domain is time.
+
+# Mathematical operations
+
+## Generate all possible combinations
+`r rdl("comboList()")` produces a list that contains all possible combinations of a set of `n` objects indexed by `1:n`.  As this can be computationally expensive, it can be easily parallelized with `njobs > 1`. This extends [combn()](http://www.inside-r.org/r-doc/utils/combn), which produces all the possible combinations of a specific size.  For example, here are all the possible combinations of 3 items, taken 1, 2, and 3 at a time:
+```{r comboList, eval = TRUE, echo = TRUE}
+out <- comboList(3)
+out$pList
+```
+
+## Calculate the maximum up to the current index
+For each element of a vector, `r rdl("cumMax()")` calculates the maximum from the beginning of the vector up to that element.
+```{r cumMax, eval = TRUE, echo = TRUE}
+cumMax(c(1, 2, 3, 0, 2, 4, 1))
+```
+
+## Calculate cumulative sum without propagating NA's
+If you need to calculate the cumulative sum of a vector that has missing values, `r rdl("cumsumNA()")` is your friend. Essentially the same as [cumsum()](http://www.inside-r.org/r-doc/base/cumsum), except it doesn't propagate NA's.
+```{r cumsumNA, eval = TRUE, echo = TRUE}
+x <- c(3, 4, NA, 7, -2)
+
+# cumsum() propagates the NA's
+cumsum(x)
+
+# cumsumNA() handles the NA's gracefully
+cumsumNA(x)
+```
+
+## Identify linearly dependent rows or columns
+`r rdl("findDepMat()")` identifies rows or columns in a numeric matrix that are linearly dependent.
+```{r findDepMat, eval = TRUE, echo = TRUE}
+# A matrix
+Y <- matrix(c(1, 3, 4, 2, 6, 8, 7, 2, 9, 4, 1, 7, 3.5, 1, 4.5), 
+            byrow = TRUE, ncol = 3)
+
+# Note how row 2 is multiple of row 1 and row 5 is a multiple of row 3
+print(Y)
+
+# Identify rows that are linearly dependent
+findDepMat(Y)
+```
+
+## Numerical integration using Simpson or Trapezoid rule
+`r rdl("integ()")` estimates the integral of a real-valued function using Simpson's or the Trapezoid approximation. Why might you want something other than [integrate()](http://www.inside-r.org/r-doc/stats/integrate)?  Because there are occasions when the adaptive quadrature method of [integrate()](http://www.inside-r.org/r-doc/stats/integrate) doesn't behave well---especially if the function is constant over a large portion of the domain. 
+
+As a simple example, let's look at the pdf of a Beta distribution:
+```{r integ1, eval = TRUE, echo = TRUE}
+f <- function(x) dbeta(x, 5, 5)
+plotFun(f, c(0, 1), col = "Blue")
+```
+
+Integration using Simpson's approximation:
+```{r integ2, eval = TRUE, echo = TRUE}
+integ(f(seq(0, 0.3, length = 1001)), a = 0, b = 0.3)
+```
+Compare to [pbeta()](http://www.inside-r.org/r-doc/stats/pbeta):
+```{r integ3, eval = TRUE, echo = TRUE}
+pbeta(0.3, 5, 5)
+```
+
+## Linear mapping from [a, b] to [c, d]
+`r rdl("linearMap()")` maps a numeric vector or scalar from one contiguous interval to another.  This is especially useful in situations where you want to put multiple variables in the same scale.
+```{r linearMap, eval = TRUE, echo = TRUE}
+# A short sequence in [0, 1]
+x <- seq(0, 1, length = 5)
+x
+
+# An increasing linear map
+linearMap(x, R = c(4, 7))
+
+# A decreasing map
+linearMap(x, R = c(7, 4))
+
+# A shift
+linearMap(x, R = c(-1, 0))
+```
+
+# Datasets
+
+The `Smisc` package contains three datasets, `r rdl("PowerData")`, `r rdl("timeData")`, and `r rdl("timeDiff.eg")`, that are used to in some of the examples in the documentation.
+
+
+# Citation
+
+Please cite the `Smisc` package using the following reference:
+
+Sego LH. 2016. Smisc: Sego Miscellaneous. A collection of functions for statistical computing and data manipulation in R. Pacific Northwest National Laboratory. https://pnnl.github.io/Smisc.
