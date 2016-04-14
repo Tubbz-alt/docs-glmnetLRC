@@ -111,7 +111,7 @@ Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss 
 <strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey
 </p>
 <p>
-<strong>Version:</strong> 0.1.1
+<strong>Version:</strong> 0.1.2
 </p>
 <p>
 <strong>License:</strong> file LICENSE
@@ -154,7 +154,7 @@ Enhances
 Construct a lasso or elastic-net logistic regression classifier (LRC) with an arbitrary loss function
 </h3>
 <p class="rd-p">
-This function extends the <code><a href='http://www.inside-r.org/packages/cran/glmnet/docs/glmnet'>glmnet</a></code> and <code><a href='http://www.inside-r.org/packages/cran/glmnet/docs/cv.glmnet'>cv.glmnet</a></code> functions from the <code><a href = 'https://cran.r-project.org/web/packages/glmnet/index.html'>glmnet</a></code> package. It uses cross validation to identify optimal elastic-net parameters and a threshold parameter for binary classification, where optimality is defined by minimizing an arbitrary, user-specified discrete loss function.
+This function extends the <code><a href='http://www.inside-r.org/packages/cran/glmnet/docs/glmnet'>glmnet</a></code> and <code><a href='http://www.inside-r.org/packages/cran/glmnet/docs/cv.glmnet'>cv.glmnet</a></code> functions from the <a href = 'http://cran.r-project.org/package=glmnet'>glmnet</a> package. It uses cross validation to identify optimal elastic-net parameters and a threshold parameter for binary classification, where optimality is defined by minimizing an arbitrary, user-specified discrete loss function.
 </p>
 <h4>
 Usage
@@ -247,7 +247,7 @@ The random seed used to generate unique (and repeatable) seeds for each cross va
 nJobs
 </dt>
 <dd class="rd-dd">
-The number of cores on the local host to use in parallelizing the training. Parallelization takes place at the <code>cvReps</code> level, i.e., if <code>cvReps = 1</code>, parallelizing would do no good, whereas if <code>cvReps = 2</code>, each cross validation replicate would be run separately in its own thread if <code>nJobs = 2</code>. Parallelization is executed using <code><a href = http://pnnl.github.io/docs-Smisc/rd.html#parlapplyw>parLapplyW</a></code> from the <code><a href = http://pnnl.github.io/docs-Smisc>Smisc</a></code> package.
+The number of cores on the local host to use in parallelizing the training. Parallelization takes place at the <code>cvReps</code> level, i.e., if <code>cvReps = 1</code>, parallelizing would do no good, whereas if <code>cvReps = 2</code>, each cross validation replicate would be run separately in its own thread if <code>nJobs = 2</code>. Parallelization is executed using <a href = http://pnnl.github.io/docs-Smisc/rd.html#parlapplyw>parLapplyW()</a> from the <a href = http://pnnl.github.io/docs-Smisc>Smisc</a> package.
 </dd>
 <dt>
 estimateLoss
