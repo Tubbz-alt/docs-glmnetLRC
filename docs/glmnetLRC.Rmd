@@ -4,7 +4,7 @@ The `glmnetLRC` package enables lasso and elastic-net logistic regression classi
 
 `glmnetLRC` extends the [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) package by making it possible to train lasso or elastic-net logistic regression classifiers (LRC's) using a customized, discrete loss function to measure the classification error.  This allows users to assign unique loss values to false positive and false negative errors. The logistic regression parameter estimates are obtained by maximizing the elastic-net penalized likelihood function that contains several tuning parameters. These tuning parameters are estimated by minimizing the expected loss, which is calculated using cross validation. 
 
-You can find the standard help files for package functions by following the `r rdl("bold blue links")`.
+You can find the standard help files for package functions by following the [bold blue links](rd.html).
 
 --Landon Sego and Alexander Venzin
 
