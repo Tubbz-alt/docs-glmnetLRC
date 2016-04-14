@@ -1,3 +1,5 @@
 #!/bin/bash
 
 Rscript -e 'source("build.R")'
+
+mathDetails/build.sh

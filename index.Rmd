@@ -1,6 +1,6 @@
 ---
 title: "glmnetLRC"
-subtitle: "Elastic-Net LRC"
+subtitle: "Lasso and Elastic-Net LRC"
 author: Landon Sego
 copyright: Battelle Memorial Institute
 output:

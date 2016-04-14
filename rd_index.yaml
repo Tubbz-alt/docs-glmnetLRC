@@ -2,9 +2,9 @@
   section_name: Functions
   description:
   topics:
-    - lossMatrix
     - glmnetLRC
     - summary.LRCpred
+    - lossMatrix
 -
   section_name: Data
   description:

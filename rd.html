@@ -89,8 +89,9 @@
         <div id="toc">
           <ul>
           <li><a href="#functions">Functions</a><ul>
-          <li><a href="#lossmatrix">lossMatrix</a></li>
+          <li><a href="#glmnetlrc">glmnetLRC</a></li>
           <li><a href="#summary.lrcpred">summary.LRCpred</a></li>
+          <li><a href="#lossmatrix">lossMatrix</a></li>
           </ul></li>
           <li><a href="#data">Data</a><ul>
           <li><a href="#testdata">testdata</a></li>
@@ -107,7 +108,7 @@
 Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss Function
 </h1>
 <p>
-<strong>Author:</strong> Landon Sego
+<strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey
 </p>
 <p>
 <strong>Version:</strong> 0.1.1
@@ -147,6 +148,390 @@ Enhances
 </p>
 <div id="functions" class="section level1">
 <h1>Functions</h1>
+<div id="glmnetlrc" class="section level2">
+<h2>glmnetLRC</h2>
+<h3>
+Construct a lasso or elastic-net logistic regression classifier (LRC) with an arbitrary loss function
+</h3>
+<p class="rd-p">
+This function extends the <code><a href='http://www.inside-r.org/packages/cran/glmnet/docs/glmnet'>glmnet</a></code> and <code><a href='http://www.inside-r.org/packages/cran/glmnet/docs/cv.glmnet'>cv.glmnet</a></code> functions from the <code><a href = 'https://cran.r-project.org/web/packages/glmnet/index.html'>glmnet</a></code> package. It uses cross validation to identify optimal elastic-net parameters and a threshold parameter for binary classification, where optimality is defined by minimizing an arbitrary, user-specified discrete loss function.
+</p>
+<h4>
+Usage
+</h4>
+<pre class="r"><code>glmnetLRC(truthLabels, predictors, lossMat = "0-1", lossWeight = rep(1,
+  NROW(predictors)), alphaVec = seq(0, 1, by = 0.2), tauVec = seq(0.1, 0.9,
+  by = 0.05), cvFolds = 5, cvReps = 100, stratify = FALSE,
+  masterSeed = 1, nJobs = 1, estimateLoss = FALSE, verbose = FALSE, ...)
+
+## S3 method for class 'glmnetLRC'
+print(x, verbose = TRUE, ...)
+
+## S3 method for class 'glmnetLRC'
+plot(x, ...)
+
+## S3 method for class 'glmnetLRC'
+coef(object, ...)
+
+## S3 method for class 'glmnetLRC'
+predict(object, newdata, truthCol = NULL,
+  keepCols = NULL, ...)
+
+## S3 method for class 'glmnetLRC'
+extract(object, ...)</code></pre>
+<h4>
+Arguments
+</h4>
+<dl class="rd-dl">
+<dt>
+truthLabels
+</dt>
+<dd class="rd-dd">
+A factor with two levels containing the true labels for each observation. If it is more desirable to correctly predict one of the two classes over the other, the second level of this factor should be the class you are most interested in predicting correctly.
+</dd>
+<dt>
+predictors
+</dt>
+<dd class="rd-dd">
+A matrix whose columns are the explanatory regression variables. Note: factors are not currently supported. To include a factor variable with <em>n</em> levels, it must be represented as <em>n-1</em> dummy variables in the matrix.
+</dd>
+<dt>
+lossMat
+</dt>
+<dd class="rd-dd">
+Either the character string <code>“0-1”</code>, indicating 0-1 loss, or a loss matrix of class <code>lossMat</code>, produced by <code><a href=#lossmatrix>lossMatrix</a></code>, that specifies the penalties for classification errors.
+</dd>
+<dt>
+lossWeight
+</dt>
+<dd class="rd-dd">
+A vector of non-negative weights used to calculate the expected loss. The default value is 1 for each observation.
+</dd>
+<dt>
+alphaVec
+</dt>
+<dd class="rd-dd">
+A sequence in [0, 1] designating possible values for the elastic-net mixing parameter, <span class="math inline"><em>α</em></span>. A value of <span class="math inline"><em>α</em> = 1</span> is the lasso penalty, <span class="math inline"><em>α</em> = 0</span> is the ridge penalty. Refer to <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> for further information.
+</dd>
+<dt>
+tauVec
+</dt>
+<dd class="rd-dd">
+A sequence of <span class="math inline"><em>τ</em></span> threshold values in (0, 1) for the logistic regression classifier. For a new observation, if the predicted probability that the observation belongs to the second level of <code>truthLabels</code> exceeds tau, the observation is classified as belonging to the second level.
+</dd>
+<dt>
+cvFolds
+</dt>
+<dd class="rd-dd">
+The number of cross validation folds. <code>cvFolds = length(truthLabels)</code> gives leave-one-out (L.O.O.) cross validation, in which case <code>cvReps</code> is set to <code>1</code> and <code>stratify</code> is set to <code>FALSE</code>.
+</dd>
+<dt>
+cvReps
+</dt>
+<dd class="rd-dd">
+The number of cross validation replicates, i.e., the number of times to repeat the cross validation by randomly repartitioning the data into folds and estimating the tuning parameters. For L.O.O. cross validation, this argument is set to <code>1</code> as there can only be one possible partition of the data.
+</dd>
+<dt>
+stratify
+</dt>
+<dd class="rd-dd">
+A logical indicating whether stratified sampling should be used to ensure that observations from both levels of <code>truthLabels</code> are proportionally present in the cross validation folds. In other words, stratification attempts to ensure there are sufficient observations of each level of <code>truthLabels</code> in each training set to fit the model. Stratification may be required for small or imbalanced data sets. Note that stratification is not performed for L.O.O (when <code>cvFolds = length(truthLabels)</code>).
+</dd>
+<dt>
+masterSeed
+</dt>
+<dd class="rd-dd">
+The random seed used to generate unique (and repeatable) seeds for each cross validation replicate.
+</dd>
+<dt>
+nJobs
+</dt>
+<dd class="rd-dd">
+The number of cores on the local host to use in parallelizing the training. Parallelization takes place at the <code>cvReps</code> level, i.e., if <code>cvReps = 1</code>, parallelizing would do no good, whereas if <code>cvReps = 2</code>, each cross validation replicate would be run separately in its own thread if <code>nJobs = 2</code>. Parallelization is executed using <code><a href = http://pnnl.github.io/docs-Smisc/rd.html#parlapplyw>parLapplyW</a></code> from the <code><a href = http://pnnl.github.io/docs-Smisc>Smisc</a></code> package.
+</dd>
+<dt>
+estimateLoss
+</dt>
+<dd class="rd-dd">
+A logical, set to <code>TRUE</code> to calculate the average loss estimated via cross validation using the optimized parameters <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span> to fit the elastic net model for each cross validation fold. This can be computationally expensive, as it requires another cross validation pass through the same partitions of the data, but using only the optimal parameters to estimate the loss for each cross validation replicate.
+</dd>
+<dt>
+verbose
+</dt>
+<dd class="rd-dd">
+For <code>glmetLRC</code>, a logical to turn on (or off) messages regarding the progress of the training algorithm. For the <code>print</code> method, if set to <code>FALSE</code>, it will suppress printing information about the <code>glmnetLRC</code> object and only invisibly return the results.
+</dd>
+<dt>
+x
+</dt>
+<dd class="rd-dd">
+For the <code>print</code> and <code>plot</code> methods: an object of class <code>glmnetLRC</code> (returned by <code>glmnetLRC()</code>), which contains the optimally-trained elastic-net logistic regression classifier.
+</dd>
+<dt>
+object
+</dt>
+<dd class="rd-dd">
+For the <code>coef</code>, <code>predict</code>, and <code>extract</code> methods: an object of class <code>glmnetLRC</code> (returned by <code>glmnetLRC()</code>) which contains the optimally-trained elastic-net logistic regression classifier.
+</dd>
+<dt>
+newdata
+</dt>
+<dd class="rd-dd">
+A dataframe or matrix containing the new set of observations to be predicted, as well as an optional column of true labels. <code>newdata</code> must contain all of the column names that were used to fit the elastic-net logistic regression classifier.
+</dd>
+<dt>
+truthCol
+</dt>
+<dd class="rd-dd">
+The column number or column name in <code>newdata</code> that contains the true labels. Optional.
+</dd>
+<dt>
+keepCols
+</dt>
+<dd class="rd-dd">
+A numeric vector of column numbers (or a character vector of column names) that will be kept and returned with the predictions. Optional.
+</dd>
+<dt>
+…
+</dt>
+<dd class="rd-dd">
+For <code>glmnetLRC()</code>, these are additional arguments to <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> in the <code>glmnet</code> package. Certain arguments of <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> are reserved by the <code>glmnetLRC</code> package and an error message will make that clear if they are used. In particular, arguments that control the behavior of <span class="math inline"><em>α</em></span> and <span class="math inline"><em>λ</em></span> are reserved. For the <code>plot</code> method, the “…” are additional arguments to the default S3 method <code><a href=http://www.inside-r.org/r-doc/graphics/pairs>pairs</a></code>. And for the <code>print</code>, <code>coef</code>, <code>predict</code>, and <code>extract</code> methods, the “…” are ignored.
+</dd>
+</dl>
+<h4>
+Details
+</h4>
+<p class="rd-p">
+For a given partition of the training data, cross validation is performed to estimate the optimal values of <span class="math inline"><em>α</em></span> (the mixing parameter of the ridge and lasso penalties) and <span class="math inline"><em>λ</em></span> (the regularization parameter), as well as the optimal threshold, <span class="math inline"><em>τ</em></span>, which is used to dichotomize the probability predictions of the elastic-net logistic regression model into binary outcomes. (Specifically, if the probability an observation belongs to the second level of <code>truthLabels</code> exceeds <span class="math inline"><em>τ</em></span>, it is classified as belonging to that second level). In this case, optimality is defined as the set of parameters that minimize the risk, or expected loss, where the loss function created using <code><a href=#lossmatrix>lossMatrix</a></code>. The expected loss is calculated such that each observation in the data receives equal weight
+</p>
+<p class="rd-p">
+<code>glmnetLRC()</code> searches for the optimal values of <span class="math inline"><em>α</em></span> and <span class="math inline"><em>τ</em></span> by fitting the elastic-net model at the points of the two-dimensional grid defined by <code>alphaVec</code> and <code>tauVec</code>. For each value of <span class="math inline"><em>α</em></span>, the vector of <span class="math inline"><em>λ</em></span> values is selected automatically by <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> according to its default arguments. The expected loss is calculated for each <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span> triple, and the triple giving rise to the lowest risk designates the optimal model for a given cross validation partition, or cross validation replicate, of the data.
+</p>
+<p class="rd-p">
+This process is repeated <code>cvReps</code> times, where each time a different random partition of the data is created using its own seed, resulting in another optimal estimate of <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span>. The final estimate of <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span> is given by the respective medians of those estimates. The final elastic-net logistic regression classfier is given by fitting the regression coefficients to all the training data using the optimal <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span>.
+</p>
+<p class="rd-p">
+The methodology is discussed in detail in the online <a href = http://pnnl.github.io/docs-glmnetLRC/index.html#mathematical-details>package documentation</a>.
+</p>
+<h4>
+Value
+</h4>
+<p class="rd-p">
+<dl>
+An object of class <code>glmnetLRC</code>, which inherits from classes <code>lognet</code> and <code>glmnet</code>. It contains the object returned by <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> that has been fit to all the data using the optimal parameters <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span>. It also contains the following additional elements:
+<dl>
+<dt>
+lossMat
+</dt>
+<dd>
+The loss matrix used as the criteria for selecting optimal tuning parameters
+</dd>
+</p>
+<p class="rd-p">
+<dt>
+parms
+</dt>
+<dd>
+A data fame that contains the tuning parameter estimates for <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span> that minimize the expected loss for each cross validation replicate. Used by the <code>plot</code> method.
+</dd>
+</p>
+<p class="rd-p">
+<dt>
+optimalParms
+</dt>
+<dd>
+A named vector that contains the final estimates of <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span>, calculated as the element-wise median of <code>parms</code>
+</dd>
+</p>
+<p class="rd-p">
+<dt>
+lossEstimates
+</dt>
+<dd>
+If <code>estimateLoss = TRUE</code>, this element is a data frame with the expected loss for each cross validation replicate
+</dd>
+</p>
+<p class="rd-p">
+</dl>
+</p>
+<p class="rd-p">
+</dl>
+</p>
+<h4>
+Methods (by generic)
+</h4>
+<p class="rd-p">
+<ul>
+<li>
+<code>print</code>: Displays the overall optimized values of <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span>, with the corresponding degrees of freedom and deviance for the model fit to all the data using the optimzed parameters. If <code>estimateLoss = TRUE</code> when <code>glmnetLRC()</code> was called, the mean and standard deviation of the expected loss are also shown. In addition, all of this same information is returned invisibly as a matrix. Display of the information can be suppressed by setting <code>verbose = FALSE</code> in the call to <code>print</code>.
+</p>
+<p class="rd-p">
+</li>
+<li>
+<code>plot</code>: Produces a pairs plot of the tuning parameters <span class="math inline">(<em>α</em>, <em>λ</em>, <em>τ</em>)</span> and their univariate histograms that were identified as optimal for each of of the cross validation replicates. This can provide a sense of the stability of the estimates of the tuning parameters.
+</p>
+<p class="rd-p">
+</li>
+<li>
+<code>coef</code>: Calls the <code>predict</code> method in <code>glmnet</code> on the fitted glmnet object and returns a named vector of the non-zero elastic-net logistic regression coefficients using the optimal values of <span class="math inline"><em>α</em></span> and <span class="math inline"><em>λ</em></span>.
+</p>
+<p class="rd-p">
+</li>
+<li>
+<code>predict</code>: Predict (or classify) new data from an <code>glmnetLRC</code> object. Returns an object of class <code>LRCpred</code> (which inherits from <code>data.frame</code>) that contains the predicted class for each observation. The columns indicated by <code>truthCol</code> and <code>keepCols</code> are included if they were requested.
+</p>
+<p class="rd-p">
+</li>
+<li>
+<code>extract</code>: Extracts the <code>glmnet</code> object that was fit using the optimal parameter estimates of <span class="math inline">(<em>α</em>, <em>λ</em>)</span>. Returns an object of class <code>“lognet” “glmnet”</code> that can be passed to various methods available in the <code>glmnet</code> package.
+</li>
+</ul>
+</p>
+<h4>
+References
+</h4>
+<p class="rd-p">
+Amidan BG, Orton DJ, LaMarche BL, Monroe ME, Moore RJ, Venzin AM, Smith RD, Sego LH, Tardiff MF, Payne SH. 2014. Signatures for Mass Spectrometry Data Quality. Journal of Proteome Research. 13(4), 2215-2222. <a href = http://pubs.acs.org/doi/abs/10.1021/pr401143e>http://pubs.acs.org/doi/abs/10.1021/pr401143e</a>
+</p>
+<p class="rd-p">
+Friedman J, Hastie T, Tibshirani R. 2010. Regularization Paths for Generalized Linear Models via Coordinate Descent. Journal of Statistical Software. 33(1), 1-22.
+</p>
+<h4>
+Examples
+</h4>
+<pre class="r"><code># Load the VOrbitrap Shewanella QC data from Amidan et al.
+data(traindata)
+
+# Here we select the predictor variables
+predictors <- as.matrix(traindata[,9:96])
+
+# The logistic regression model requires a binary response
+# variable. We will create a factor variable from the
+# Curated Quality measurements. Note how we put "poor" as the
+# second level in the factor.  This is because the principal
+# objective of the classifer is to detect "poor" datasets
+response <- factor(traindata$Curated_Quality,
+                   levels = c("good", "poor"),
+                   labels = c("good", "poor"))
+
+# Specify the loss matrix. The "poor" class is the target of interest.
+# The penalty for misclassifying a "poor" item as "good" results in a
+# loss of 5.
+lM <- lossMatrix(c("good","good","poor","poor"),
+                 c("good","poor","good","poor"),
+                 c(     0,     1,     5,     0))
+
+# Display the loss matrix
+lM
+
+# Train the elastic-net classifier (we don't run it here because it takes a long time)
+
+glmnetLRC_fit <- glmnetLRC(response, predictors, lossMat = lM, estimateLoss = TRUE,
+                           nJobs = parallel::detectCores())
+
+
+# We'll load the precalculated model fit instead
+data(glmnetLRC_fit)
+
+# Show the optimal parameter values
+print(glmnetLRC_fit)
+
+# Show the coefficients of the optimal model
+coef(glmnetLRC_fit)
+
+# Show the plot of all the optimal parameter values for each cross validation replicate
+plot(glmnetLRC_fit)
+
+# Extract the 'glmnet' object from the glmnetLRC fit
+glmnetObject <- extract(glmnetLRC_fit)
+
+# See how the glmnet methods operate on the object
+plot(glmnetObject)
+
+# Look at the coefficients for the optimal lambda
+coef(glmnetObject, s = glmnetLRC_fit$optimalParms["lambda"] )
+
+# Load the new observations
+data(testdata)
+
+# Use the trained model to make predictions about
+# new observations for the response variable.
+new <- predict(glmnetLRC_fit, testdata, truthCol = "Curated_Quality", keepCols = 1:2)
+head(new)
+
+# Now summarize the performance of the model
+summary(new)
+
+# If predictions are made without an indication of the ground truth,
+# the summary is necessarily simpler:
+summary(predict(glmnetLRC_fit, testdata))</code></pre>
+<h4>
+See also
+</h4>
+<p><code><a href=#summary.lrcpred>summary.LRCpred</a></code>, a summary method for objects of class <code>LRCpred</code>, produced by the <code>predict</code> method.</p>
+<h4>
+Author
+</h4>
+<p>Landon Sego, Alex Venzin</p>
+</div>
+<div id="summary.lrcpred" class="section level2">
+<h2>summary.LRCpred</h2>
+<h3>
+Calculate performance metrics of logistic regression classifiers
+</h3>
+<p class="rd-p">
+Calculate accuracy, sensitivity, specificity, false positive rate, and false negative rate for predictions from logistic regression classifiers
+</p>
+<h4>
+Usage
+</h4>
+<pre class="r"><code>## S3 method for class 'LRCpred'
+summary(object, ...)</code></pre>
+<h4>
+Arguments
+</h4>
+<dl class="rd-dl">
+<dt>
+object
+</dt>
+<dd class="rd-dd">
+an object of class <code>LRCpred</code> returned by <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>.
+</dd>
+<dt>
+…
+</dt>
+<dd class="rd-dd">
+Ignored
+</dd>
+</dl>
+<h4>
+Value
+</h4>
+<p class="rd-p">
+<dl>
+<ul>
+<li>
+If <code>truthCol</code> was provided in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, a <code>data.frame</code> is returned with the sensitivity, specificity, false negative rate, false positive rate, and accuracy for the class designated by the second level of the <code>truthLabels</code> argument in <code><a href=#glmnetlrc>glmnetLRC</a></code>.
+</p>
+<p class="rd-p">
+</li>
+<li>
+If <code>truthCol = NULL</code> in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code> a tabulation of the number of predictions for each class is returned.
+</li>
+</ul>
+</p>
+<p class="rd-p">
+</dl>
+</p>
+<h4>
+See also
+</h4>
+<p>See <code><a href=#glmnetlrc>glmnetLRC</a></code> and <code><a href=#glmnetlrc_fit>glmnetLRC_fit</a></code> for examples.</p>
+<h4>
+Author
+</h4>
+<p>Landon Sego</p>
+</div>
 <div id="lossmatrix" class="section level2">
 <h2>lossMatrix</h2>
 <h3>
@@ -160,7 +545,8 @@ Usage
 </h4>
 <pre class="r"><code>lossMatrix(truthLabels, predLabels, lossValues)
 
-printlossMat(x, ...)</code></pre>
+## S3 method for class 'lossMat'
+print(x, ...)</code></pre>
 <h4>
 Arguments
 </h4>
@@ -228,63 +614,6 @@ Author
 </h4>
 <p>Landon Sego</p>
 </div>
-<div id="summary.lrcpred" class="section level2">
-<h2>summary.LRCpred</h2>
-<h3>
-Calculate performance metrics of logistic regression classifiers
-</h3>
-<p class="rd-p">
-Calculate accuracy, sensitivity, specificity, false positive rate, and false negative rate for predictions from logistic regression classifiers
-</p>
-<h4>
-Usage
-</h4>
-<pre class="r"><code>summaryLRCpred(object, ...)</code></pre>
-<h4>
-Arguments
-</h4>
-<dl class="rd-dl">
-<dt>
-object
-</dt>
-<dd class="rd-dd">
-an object of class <code>LRC_pred</code> returned by <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>.
-</dd>
-<dt>
-…
-</dt>
-<dd class="rd-dd">
-Ignored
-</dd>
-</dl>
-<h4>
-Value
-</h4>
-<p class="rd-p">
-<dl>
-<ul>
-<li>
-If <code>truthCol</code> was provided in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, a <code>data.frame</code> is returned with the sensitivity, specificity, false negative rate, false positive rate, and accuracy for the class designated by the second level of the <code>truthLabels</code> argument in <code><a href=#glmnetlrc>glmnetLRC</a></code>.
-</p>
-<p class="rd-p">
-</li>
-<li>
-If <code>truthCol = NULL</code> in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code> a tabulation of the number of predictions for each class is returned.
-</li>
-</ul>
-</p>
-<p class="rd-p">
-</dl>
-</p>
-<h4>
-See also
-</h4>
-<p>See <code><a href=#glmnetlrc>glmnetLRC</a></code> and <code><a href=#glmnetlrc_fit>glmnetLRC_fit</a></code> for examples.</p>
-<h4>
-Author
-</h4>
-<p>Landon Sego</p>
-</div>
 </div>
 <div id="data" class="section level1">
 <h1>Data</h1>
@@ -340,7 +669,7 @@ str(traindata)</code></pre>
 A glmnetLRC model fit object
 </h3>
 <p class="rd-p">
-This object is returned by the call <code>glmnetLRC_fit &lt;- glmnetLRC(response, predictors, lossMat = lM, estimateLoss = TRUE, nJobs = parallel::detectCores())</code> in the example of <code><a href='glmnetLRC.html'>glmnetLRC</a></code>. It is preserved here in the package because it is time consuming to generate.
+This object is returned by the call <code>glmnetLRC_fit &lt;- glmnetLRC(response, predictors, lossMat = lM, estimateLoss = TRUE, nJobs = parallel::detectCores())</code> in the example of <code><a href='#glmnetlrc'>glmnetLRC</a></code>. It is preserved here in the package because it is time consuming to generate.
 </p>
 <h4>
 Format
