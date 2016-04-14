@@ -1,0 +1,14 @@
+-
+  section_name: Functions
+  description:
+  topics:
+    - glmnetLRC
+    - summary.LRCpred
+    - lossMatrix
+-
+  section_name: Data
+  description:
+  topics:
+    - testdata
+    - traindata
+    - glmnetLRC_fit
