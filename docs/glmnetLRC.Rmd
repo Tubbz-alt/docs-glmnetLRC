@@ -174,7 +174,7 @@ plot(glmnetLRC_fit)
 
 # Mathematical Details
 
-A mathematical description the details in the `glmnetLRC` package can be found [here](mathDetails/glmnetLRC.pdf).
+A mathematical description of the details in the `glmnetLRC` package can be found [here](mathDetails/glmnetLRC.pdf).
 
 
 # Citation
