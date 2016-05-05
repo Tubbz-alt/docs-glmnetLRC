@@ -19,7 +19,7 @@ brand: |-
 <h1>Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss Function</h1>
 
 <p><strong>Authors:</strong> (none)</p>
-<p><strong>Version:</strong> 0.1.2</p>
+<p><strong>Version:</strong> 0.1.3</p>
 <p><strong>License:</strong> file LICENSE</p>
 
 <h4>Description</h4>
@@ -71,6 +71,8 @@ coefglmnetLRC(object, ...)
 
 predictglmnetLRC(object, newdata, truthCol = NULL,
   keepCols = NULL, ...)
+
+missingpredsglmnetLRC(object, newdata, ...)
 
 extractglmnetLRC(object, ...)</code></pre>
 
@@ -152,7 +154,7 @@ which contains the optimally-trained elastic-net logistic regression classifier.
   <dt>newdata</dt>
   <dd class="rd-dd">A dataframe or matrix containing the new set of observations to
 be predicted, as well as an optional column of true labels.
-<code>newdata</code> must contain all of the column names that were used
+<code>newdata</code> should contain all of the column names that were used
 to fit the elastic-net logistic regression classifier.</dd>
   <dt>truthCol</dt>
   <dd class="rd-dd">The column number or column name in <code>newdata</code> that contains the
@@ -165,7 +167,7 @@ column names) that will be kept and returned with the predictions. Optional.</dd
 Certain arguments of <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> are reserved by the <code>glmnetLRC</code> package and an error message will make that
 clear if they are used.  In particular, arguments that control the behavior of $\alpha$ and $\lambda$ are reserved.
 For the <code>plot</code> method, the "..." are additional arguments to the default S3 method <code><a href=http://www.inside-r.org/r-doc/graphics/pairs>pairs</a></code>.  And for
-the <code>print</code>, <code>coef</code>, <code>predict</code>, and <code>extract</code> methods, the "..." are ignored.</dd>
+the <code>print</code>, <code>coef</code>, <code>predict</code>, <code>missingpreds</code>, and <code>extract</code> methods, the "..." are ignored.</dd>
 </dl>
 
   <h4>Details</h4>
@@ -254,6 +256,11 @@ regression coefficients using the optimal values of $\alpha$ and $\lambda$.</p>
 Returns an object of class <code>LRCpred</code> (which inherits
 from <code>data.frame</code>) that contains the predicted class for each observation.  The columns indicated
 by <code>truthCol</code> and <code>keepCols</code> are included if they were requested.</p>
+
+  <p class="rd-p"></li>
+<li> <code>missingpreds</code>: Identify the set of predictors in a <code>glmnetLRC</code> object that are not
+present in <code>newdata</code>. Returns a character vector of the missing predictor names. If no predictors are missing,
+it returns <code>character(0)</code>.</p>
 
   <p class="rd-p"></li>
 <li> <code>extract</code>: Extracts the <code>glmnet</code> object that was fit using the optimal parameter estimates of
