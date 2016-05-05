@@ -62,6 +62,11 @@ rsed::streamEdit(list(# Fix print method for 'lossMat'
                                replacement = "## S3 method for class 'glmnetLRC'\npredict(object, newdata, truthCol = NULL,",
                                fixed = TRUE),
 
+                      # Fix missingpreds method for 'glmnetLRC'
+                      r = list(at = "missingpredsglmnetLRC(object, newdata, ...)",
+                               replacement = "## S3 method for class 'glmnetLRC'\nmissingpreds(object, newdata, ...)",
+                               fixed = TRUE),
+
                       # Fix extract method for 'glmnetLRC'
                       r = list(at = "extractglmnetLRC(object, ...)</code></pre>",
                                replacement = "## S3 method for class 'glmnetLRC'\nextract(object, ...)</code></pre>",
