@@ -19,7 +19,7 @@ brand: |-
 <h1>Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss Function</h1>
 
 <p><strong>Authors:</strong> (none)</p>
-<p><strong>Version:</strong> 0.1.3</p>
+<p><strong>Version:</strong> 0.1.4</p>
 <p><strong>License:</strong> file LICENSE</p>
 
 <h4>Description</h4>
@@ -254,8 +254,10 @@ regression coefficients using the optimal values of $\alpha$ and $\lambda$.</p>
   <p class="rd-p"></li>
 <li> <code>predict</code>: Predict (or classify) new data from an <code>glmnetLRC</code> object.
 Returns an object of class <code>LRCpred</code> (which inherits
-from <code>data.frame</code>) that contains the predicted class for each observation.  The columns indicated
-by <code>truthCol</code> and <code>keepCols</code> are included if they were requested.</p>
+from <code>data.frame</code>) that contains the predicted probabilities (<code>Prob</code>) and class (<code>predictClass</code>)
+for each observation.  The <code>Prob</code> column corresponds to the predicted probability that an observation belongs
+to the second level of <code>truthLabels</code>. The columns indicated by <code>truthCol</code> and <code>keepCols</code> are included
+if they were requested.</p>
 
   <p class="rd-p"></li>
 <li> <code>missingpreds</code>: Identify the set of predictors in a <code>glmnetLRC</code> object that are not

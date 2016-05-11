@@ -111,7 +111,7 @@ Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss 
 <strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey
 </p>
 <p>
-<strong>Version:</strong> 0.1.3
+<strong>Version:</strong> 0.1.4
 </p>
 <p>
 <strong>License:</strong> file LICENSE
@@ -381,7 +381,7 @@ Methods (by generic)
 <p class="rd-p">
 </li>
 <li>
-<code>predict</code>: Predict (or classify) new data from an <code>glmnetLRC</code> object. Returns an object of class <code>LRCpred</code> (which inherits from <code>data.frame</code>) that contains the predicted class for each observation. The columns indicated by <code>truthCol</code> and <code>keepCols</code> are included if they were requested.
+<code>predict</code>: Predict (or classify) new data from an <code>glmnetLRC</code> object. Returns an object of class <code>LRCpred</code> (which inherits from <code>data.frame</code>) that contains the predicted probabilities (<code>Prob</code>) and class (<code>predictClass</code>) for each observation. The <code>Prob</code> column corresponds to the predicted probability that an observation belongs to the second level of <code>truthLabels</code>. The columns indicated by <code>truthCol</code> and <code>keepCols</code> are included if they were requested.
 </p>
 <p class="rd-p">
 </li>
