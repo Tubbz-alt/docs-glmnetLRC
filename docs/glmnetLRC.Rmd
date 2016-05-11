@@ -137,6 +137,8 @@ predictTrain <- predict(glmnetLRC_fit, traindata,
 # kept:  "Instrument_Category" and "Instrument"
 head(predictTrain)
 ```
+The `Prob` column above is the probability predicted by the logistic regression model that the observation is a `poor` dataset.
+
 We can summarize the performance of the classifier predictions with a call to the `summary()` method. The performance metrics are oriented in terms of being sensitive to predicting a `poor` dataset.  Thus, a false positive is predicting a dataset to be `poor` when it is `good,` and a false negative is predicting a dataset to be `good` when it is `poor.`  This orientation resulted from us setting `poor` as the second level in `response`.
 ```{r predict2, echo = TRUE, eval = TRUE}
 # Summarize the performance of the new classifier in terms of a variety of metrics:
@@ -159,8 +161,7 @@ head(predictTest)
 # Summarize the output of predicting the test data
 summary(predictTest)
 ```
- If we don't include a truth column in the call to `predict()`, the `summary()` method 
-counts the number of observations classified to each category:
+ If we don't include a truth column in the call to `predict()`, the `summary()` method provides a numeric summary of the predicted probabilities and counts the number of observations assigned to each category by the LRC:
 ```{r predict4, echo = TRUE, eval = TRUE}
 summary(predict(glmnetLRC_fit, testdata))
 ```

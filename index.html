@@ -197,13 +197,21 @@ predictTrain &lt;- predict(glmnetLRC_fit, traindata,
 # Look at beginning of the predicted data.  Note the extra columns that were 
 # kept:  &quot;Instrument_Category&quot; and &quot;Instrument&quot;
 head(predictTrain)</code></pre>
-<pre><code>      PredictClass Curated_Quality Instrument_Category Instrument
-pt701         poor            good           VOrbitrap VOrbiETD03
-pt702         good            good           VOrbitrap VOrbiETD03
-pt703         good            good           VOrbitrap VOrbiETD03
-pt704         poor            good           VOrbitrap VOrbiETD03
-pt706         poor            poor           VOrbitrap VOrbiETD02
-pt707         poor            poor           VOrbitrap VOrbiETD02</code></pre>
+<pre><code>           Prob PredictClass Curated_Quality Instrument_Category
+pt701 0.1642061         poor            good           VOrbitrap
+pt702 0.1385627         good            good           VOrbitrap
+pt703 0.0524000         good            good           VOrbitrap
+pt704 0.3173680         poor            good           VOrbitrap
+pt706 0.9917682         poor            poor           VOrbitrap
+pt707 0.9948105         poor            poor           VOrbitrap
+      Instrument
+pt701 VOrbiETD03
+pt702 VOrbiETD03
+pt703 VOrbiETD03
+pt704 VOrbiETD03
+pt706 VOrbiETD02
+pt707 VOrbiETD02</code></pre>
+<p>The <code>Prob</code> column above is the probability predicted by the logistic regression model that the observation is a <code>poor</code> dataset.</p>
 <p>We can summarize the performance of the classifier predictions with a call to the <code>summary()</code> method. The performance metrics are oriented in terms of being sensitive to predicting a <code>poor</code> dataset. Thus, a false positive is predicting a dataset to be <code>poor</code> when it is <code>good,</code> and a false negative is predicting a dataset to be <code>good</code> when it is <code>poor.</code> This orientation resulted from us setting <code>poor</code> as the second level in <code>response</code>.</p>
 <pre class="r"><code># Summarize the performance of the new classifier in terms of a variety of metrics:
 summary(predictTrain)</code></pre>
@@ -227,13 +235,13 @@ predictTest &lt;- predict(glmnetLRC_fit, testdata, truthCol = &quot;Curated_Qual
 
 # Look at the first few rows
 head(predictTest)</code></pre>
-<pre><code>     PredictClass Curated_Quality
-931          poor            good
-1449         good            good
-1467         good            good
-1468         good            good
-1470         good            good
-1501         good            good</code></pre>
+<pre><code>           Prob PredictClass Curated_Quality
+931  0.93749105         poor            good
+1449 0.05542810         good            good
+1467 0.03719369         good            good
+1468 0.03208644         good            good
+1470 0.02964643         good            good
+1501 0.13626848         good            good</code></pre>
 <pre class="r"><code># Summarize the output of predicting the test data
 summary(predictTest)</code></pre>
 <pre><code>                          poor
@@ -242,11 +250,15 @@ specificity         0.84210526
 false negative rate 0.04918033
 false positive rate 0.15789474
 accuracy            0.90909091</code></pre>
-<p>If we don’t include a truth column in the call to <code>predict()</code>, the <code>summary()</code> method counts the number of observations classified to each category:</p>
+<p>If we don’t include a truth column in the call to <code>predict()</code>, the <code>summary()</code> method provides a numeric summary of the predicted probabilities and counts the number of observations assigned to each category by the LRC:</p>
 <pre class="r"><code>summary(predict(glmnetLRC_fit, testdata))</code></pre>
-<pre><code> PredictClass
- good:35     
- poor:64     </code></pre>
+<pre><code>      Prob           PredictClass
+ Min.   :0.0000252   good:35     
+ 1st Qu.:0.0632902   poor:64     
+ Median :0.4526286               
+ Mean   :0.4837047               
+ 3rd Qu.:0.9412698               
+ Max.   :0.9999832               </code></pre>
 </div>
 <div id="diagnostics" class="section level2">
 <h2>Diagnostics</h2>
