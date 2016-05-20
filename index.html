@@ -104,7 +104,7 @@
 <li>on Windows, you’ll need to install <a href="http://cran.r-project.org/bin/windows/Rtools/">R tools</a></li>
 <li>on Linux, compilation should take place “automatically”</li>
 </ul>
-<p>With the compilation tools in place, you can now install the <code>Smisc</code> and <code>glmnetLRC</code> packages from <a href="http://github.com/pnnl">the PNNL github site</a> as follows:</p>
+<p>With the compilation tools in place, you can now install the <code>Smisc</code> and <code>glmnetLRC</code> packages from <a href="http://github.com/pnnl">the PNNL Github site</a> as follows:</p>
 <pre><code>devtools::install_github(&quot;pnnl/Smisc&quot;)
 devtools::install_github(&quot;pnnl/glmnetLRC&quot;)</code></pre>
 <p>Now load the package as usual:</p>
@@ -215,12 +215,24 @@ pt707 VOrbiETD02</code></pre>
 <p>We can summarize the performance of the classifier predictions with a call to the <code>summary()</code> method. The performance metrics are oriented in terms of being sensitive to predicting a <code>poor</code> dataset. Thus, a false positive is predicting a dataset to be <code>poor</code> when it is <code>good,</code> and a false negative is predicting a dataset to be <code>good</code> when it is <code>poor.</code> This orientation resulted from us setting <code>poor</code> as the second level in <code>response</code>.</p>
 <pre class="r"><code># Summarize the performance of the new classifier in terms of a variety of metrics:
 summary(predictTrain)</code></pre>
-<pre><code>                          poor
+<pre><code>Logistic regression classification performance:
+
+                          poor
 sensitivity         0.97979798
 specificity         0.90265487
 false negative rate 0.02020202
 false positive rate 0.09734513
-accuracy            0.92615385</code></pre>
+accuracy            0.92615385
+
+Summary of predicted probabilities, by true class:
+
+TrueClass: good
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+0.007506 0.022510 0.036520 0.080950 0.067650 0.802500 
+-------------------------------------------------------- 
+TrueClass: poor
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+0.02915 0.75690 0.90930 0.81520 0.99050 0.99960 </code></pre>
 <p>Now let’s bring in some new data and examine the performance of the classifier:</p>
 <pre class="r"><code># Load the data for testing
 data(testdata)
@@ -244,21 +256,47 @@ head(predictTest)</code></pre>
 1501 0.13626848         good            good</code></pre>
 <pre class="r"><code># Summarize the output of predicting the test data
 summary(predictTest)</code></pre>
-<pre><code>                          poor
+<pre><code>Logistic regression classification performance:
+
+                          poor
 sensitivity         0.95081967
 specificity         0.84210526
 false negative rate 0.04918033
 false positive rate 0.15789474
-accuracy            0.90909091</code></pre>
+accuracy            0.90909091
+
+Summary of predicted probabilities, by true class:
+
+TrueClass: good
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+0.0000252 0.0222400 0.0387600 0.1156000 0.1096000 0.9375000 
+-------------------------------------------------------- 
+TrueClass: poor
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+0.03867 0.45480 0.87730 0.71300 0.99270 1.00000 </code></pre>
+<p>We can also create a plot of the probabilities produced by the logistic regression model. The more separated the probabilities of the <code>good</code> and <code>poor</code> datasets, the better the classifier:</p>
+<pre class="r"><code>plot(predictTest, scale = 0.5, legendArgs = list(x = &quot;topright&quot;))</code></pre>
+<p><img src="index_files/figure-html/plotPredict-1.png" title="" alt="" width="624" /></p>
 <p>If we don’t include a truth column in the call to <code>predict()</code>, the <code>summary()</code> method provides a numeric summary of the predicted probabilities and counts the number of observations assigned to each category by the LRC:</p>
-<pre class="r"><code>summary(predict(glmnetLRC_fit, testdata))</code></pre>
-<pre><code>      Prob           PredictClass
- Min.   :0.0000252   good:35     
- 1st Qu.:0.0632902   poor:64     
- Median :0.4526286               
- Mean   :0.4837047               
- 3rd Qu.:0.9412698               
- Max.   :0.9999832               </code></pre>
+<pre class="r"><code>predictTest1 &lt;- predict(glmnetLRC_fit, testdata)
+summary(predictTest1)</code></pre>
+<pre><code>Counts of predicted classes:
+
+good poor 
+  35   64 
+
+Summary of predicted probabilities, by predicted class:
+
+PredictedClass: good
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+2.518e-05 2.135e-02 3.396e-02 4.941e-02 7.507e-02 1.385e-01 
+-------------------------------------------------------- 
+PredictedClass: poor
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.1614  0.4629  0.8701  0.7212  0.9881  1.0000 </code></pre>
+<p>And the <code>plot()</code> method shows the predicted probabilities without distinguishing between the truly <code>good</code> or <code>poor</code> datasets:</p>
+<pre class="r"><code>plot(predictTest1, scale = 0.5)</code></pre>
+<p><img src="index_files/figure-html/predict5-1.png" title="" alt="" width="624" /></p>
 </div>
 <div id="diagnostics" class="section level2">
 <h2>Diagnostics</h2>

@@ -77,6 +77,11 @@ rsed::streamEdit(list(# Fix print method for 'lossMat'
                                replacement = "<pre class=\"r\"><code>## S3 method for class 'LRCpred'\nsummary(object, ...)</code></pre>",
                                fixed = TRUE),
                       
+                      # Fix plot method for 'LRCpred'
+                      r = list(at = "plotLRCpred(x,",
+                               replacement = "<pre class=\"r\"><code>## S3 method for class 'LRCpred'\nplot(x, pch = c(1, 2), col = c(\"Blue\", \"Red\"),",
+                               fixed = TRUE),
+                      
                       # Fix glmnetLRC link in glmnetLRC_fit
                       s = list(pattern = "<code><a href='glmnetLRC.html'>",
                                replacement = "<code><a href='#glmnetlrc'>",
