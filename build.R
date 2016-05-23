@@ -25,71 +25,66 @@ if(!require("rsed")) {
   devtools::install_github("pnnl/rsed")
 }
 
-# Manual edits of index.html
-## rsed::streamEdit(list(# Map links for pbb, qbb, and rbb to dbb
-##                       s = list(pattern = "rd.html#pbb", replacement = "rd.html#dbb", fixed = TRUE),
-##                       s = list(pattern = "rd.html#qbb", replacement = "rd.html#dbb", fixed = TRUE),
-##                       s = list(pattern = "rd.html#rbb", replacement = "rd.html#dbb", fixed = TRUE),
-                      
-##                       # Map links for pkbinom to dkbinom
-##                       s = list(pattern = "rd.html#pkbinom", replacement = "rd.html#dkbinom", fixed = TRUE)),
-                 
-##                  inFile = "index.html", outFile = "index.html")
-
 # Manual edits of rd.html
-rsed::streamEdit(list(# Fix print method for 'lossMat'
-                      r = list(at = "printlossMat(x, ...)</code></pre>",
-                               replacement = "## S3 method for class 'lossMat'\nprint(x, ...)</code></pre>",
-                               fixed = TRUE),
+rsed::streamEdit(list(
+  # Fix print method for 'lossMat'
+  r = list(at = "printlossMat(x, ...)</code></pre>",
+           replacement = "## S3 method for class 'lossMat'\nprint(x, ...)</code></pre>",
+           fixed = TRUE),
 
-                      # Fix print method for 'glmnetLRC'
-                      r = list(at = "printglmnetLRC(x, verbose = TRUE, ...)",
-                               replacement = "## S3 method for class 'glmnetLRC'\nprint(x, verbose = TRUE, ...)",
+  # Fix print method for 'glmnetLRC'
+  r = list(at = "printglmnetLRC(x, verbose = TRUE, ...)",
+           replacement = "## S3 method for class 'glmnetLRC'\nprint(x, verbose = TRUE, ...)",
                                fixed = TRUE),
+  
+  # Fix plot method for 'glmnetLRC'
+  r = list(at = "plotglmnetLRC(x, ...)",
+           replacement = "## S3 method for class 'glmnetLRC'\nplot(x, ...)",
+           fixed = TRUE),
+
+  # Fix coef method for 'glmnetLRC'
+  r = list(at = "coefglmnetLRC(object, ...)",
+           replacement = "## S3 method for class 'glmnetLRC'\ncoef(object, ...)",
+           fixed = TRUE),
+
+  # Fix predict method for 'glmnetLRC'
+  r = list(at = "predictglmnetLRC(object, newdata, truthCol = NULL,",
+           replacement = "## S3 method for class 'glmnetLRC'\npredict(object, newdata, truthCol = NULL,",
+           fixed = TRUE),
+
+  # Fix missingpreds method for 'glmnetLRC'
+  r = list(at = "missingpredsglmnetLRC(object, newdata, ...)",
+           replacement = "## S3 method for class 'glmnetLRC'\nmissingpreds(object, newdata, ...)",
+           fixed = TRUE),
+
+  # Fix extract method for 'glmnetLRC'
+  r = list(at = "extractglmnetLRC(object, ...)</code></pre>",
+           replacement = "## S3 method for class 'glmnetLRC'\nextract(object, ...)</code></pre>",
+           fixed = TRUE),
+
+  # Fix summary method for 'LRCpred'
+  r = list(at = "summaryLRCpred(object, ...)",
+           replacement = "<pre class=\"r\"><code>## S3 method for class 'LRCpred'\nsummary(object, ...)",
+           fixed = TRUE),
+
+  # Fix print method for 'summaryLRCpred'
+  r = list(at = "printsummaryLRCpred(x, ...)",
+           replacement = "## S3 method for class 'summaryLRCpred'\nprint(x, ...)</code></pre>",
+           fixed = TRUE),
+    
+  # Fix plot method for 'LRCpred'
+  r = list(at = "plotLRCpred(x,",
+           replacement = "<pre class=\"r\"><code>## S3 method for class 'LRCpred'\nplot(x, pch = c(1, 2), col = c(\"Blue\", \"Red\"),",
+           fixed = TRUE),
                       
-                      # Fix plot method for 'glmnetLRC'
-                      r = list(at = "plotglmnetLRC(x, ...)",
-                               replacement = "## S3 method for class 'glmnetLRC'\nplot(x, ...)",
-                               fixed = TRUE),
-
-                      # Fix coef method for 'glmnetLRC'
-                      r = list(at = "coefglmnetLRC(object, ...)",
-                               replacement = "## S3 method for class 'glmnetLRC'\ncoef(object, ...)",
-                               fixed = TRUE),
-
-                      # Fix predict method for 'glmnetLRC'
-                      r = list(at = "predictglmnetLRC(object, newdata, truthCol = NULL,",
-                               replacement = "## S3 method for class 'glmnetLRC'\npredict(object, newdata, truthCol = NULL,",
-                               fixed = TRUE),
-
-                      # Fix missingpreds method for 'glmnetLRC'
-                      r = list(at = "missingpredsglmnetLRC(object, newdata, ...)",
-                               replacement = "## S3 method for class 'glmnetLRC'\nmissingpreds(object, newdata, ...)",
-                               fixed = TRUE),
-
-                      # Fix extract method for 'glmnetLRC'
-                      r = list(at = "extractglmnetLRC(object, ...)</code></pre>",
-                               replacement = "## S3 method for class 'glmnetLRC'\nextract(object, ...)</code></pre>",
-                               fixed = TRUE),
-
-                      # Fix summary method for 'LRCpred'
-                      r = list(at = "summaryLRCpred(object, ...)</code></pre>",
-                               replacement = "<pre class=\"r\"><code>## S3 method for class 'LRCpred'\nsummary(object, ...)</code></pre>",
-                               fixed = TRUE),
+  # Fix glmnetLRC link in glmnetLRC_fit
+  s = list(pattern = "<code><a href='glmnetLRC.html'>",
+           replacement = "<code><a href='#glmnetlrc'>",
+           fixed = TRUE),
                       
-                      # Fix plot method for 'LRCpred'
-                      r = list(at = "plotLRCpred(x,",
-                               replacement = "<pre class=\"r\"><code>## S3 method for class 'LRCpred'\nplot(x, pch = c(1, 2), col = c(\"Blue\", \"Red\"),",
-                               fixed = TRUE),
-                      
-                      # Fix glmnetLRC link in glmnetLRC_fit
-                      s = list(pattern = "<code><a href='glmnetLRC.html'>",
-                               replacement = "<code><a href='#glmnetlrc'>",
-                               fixed = TRUE),
-                      
-                      # Fix the author field
-                      r = list(at = "<strong>Authors:</strong> (none)",
-                               replacement = "<strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey",
-                               fixed = TRUE)),
+  # Fix the author field
+  r = list(at = "<strong>Authors:</strong> (none)",
+           replacement = "<strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey",
+           fixed = TRUE)),
                  
-                 inFile = "rd.html", outFile = "rd.html")
+  inFile = "rd.html", outFile = "rd.html")
