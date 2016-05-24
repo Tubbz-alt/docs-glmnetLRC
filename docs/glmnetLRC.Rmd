@@ -21,7 +21,7 @@ The [Smisc](http://pnnl.github.io/Smisc) package (which is imported by `glmnetLR
 * on Linux, compilation should take place "automatically"
 
 With the compilation tools in place, you can now install the `Smisc` and `glmnetLRC` packages
-from [the PNNL github site](http://github.com/pnnl) as follows:
+from [the PNNL Github site](http://github.com/pnnl) as follows:
 
     devtools::install_github("pnnl/Smisc")
     devtools::install_github("pnnl/glmnetLRC")
@@ -161,9 +161,20 @@ head(predictTest)
 # Summarize the output of predicting the test data
 summary(predictTest)
 ```
+
+We can also create a plot of the probabilities produced by the logistic regression model. The more separated the probabilities of the `good` and `poor` datasets, the better the classifier:
+```{r plotPredict, echo = TRUE, eval = TRUE}
+plot(predictTest, scale = 0.5, legendArgs = list(x = "topright"))
+```
+
  If we don't include a truth column in the call to `predict()`, the `summary()` method provides a numeric summary of the predicted probabilities and counts the number of observations assigned to each category by the LRC:
 ```{r predict4, echo = TRUE, eval = TRUE}
-summary(predict(glmnetLRC_fit, testdata))
+predictTest1 <- predict(glmnetLRC_fit, testdata)
+summary(predictTest1)
+```
+And the `plot()` method shows the predicted probabilities without distinguishing between the truly `good` or `poor` datasets:
+```{r predict5, echo = TRUE, eval = TRUE}
+plot(predictTest1, scale = 0.5)
 ```
 
 ## Diagnostics

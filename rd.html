@@ -91,6 +91,7 @@
           <li><a href="#functions">Functions</a><ul>
           <li><a href="#glmnetlrc">glmnetLRC</a></li>
           <li><a href="#summary.lrcpred">summary.LRCpred</a></li>
+          <li><a href="#plot.lrcpred">plot.LRCpred</a></li>
           <li><a href="#lossmatrix">lossMatrix</a></li>
           </ul></li>
           <li><a href="#data">Data</a><ul>
@@ -111,7 +112,7 @@ Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss 
 <strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey
 </p>
 <p>
-<strong>Version:</strong> 0.1.4
+<strong>Version:</strong> 0.1.5
 </p>
 <p>
 <strong>License:</strong> file LICENSE
@@ -381,7 +382,7 @@ Methods (by generic)
 <p class="rd-p">
 </li>
 <li>
-<code>predict</code>: Predict (or classify) new data from an <code>glmnetLRC</code> object. Returns an object of class <code>LRCpred</code> (which inherits from <code>data.frame</code>) that contains the predicted probabilities (<code>Prob</code>) and class (<code>predictClass</code>) for each observation. The <code>Prob</code> column corresponds to the predicted probability that an observation belongs to the second level of <code>truthLabels</code>. The columns indicated by <code>truthCol</code> and <code>keepCols</code> are included if they were requested.
+<code>predict</code>: Predict (or classify) new data from an <code>glmnetLRC</code> object. Returns an object of class <code>LRCpred</code> (which inherits from <code>data.frame</code>) that contains the predicted probabilities (<code>Prob</code>) and class (<code>predictClass</code>) for each observation. The <code>Prob</code> column corresponds to the predicted probability that an observation belongs to the second level of <code>truthLabels</code>. The columns indicated by <code>truthCol</code> and <code>keepCols</code> are included if they were requested. The <code>LRCpred</code> class has two methods: <code><a href=#summary.lrcpred>summary.LRCpred</a></code> and <code><a href=#plot.lrcpred>plot.LRCpred</a></code>.
 </p>
 <p class="rd-p">
 </li>
@@ -470,6 +471,9 @@ head(new)
 # Now summarize the performance of the model
 summary(new)
 
+# And plot the probability predictions of the model
+plot(new, scale = 0.5, legendArgs = list(x = "topright"))
+
 # If predictions are made without an indication of the ground truth,
 # the summary is necessarily simpler:
 summary(predict(glmnetLRC_fit, testdata))</code></pre>
@@ -485,16 +489,19 @@ Author
 <div id="summary.lrcpred" class="section level2">
 <h2>summary.LRCpred</h2>
 <h3>
-Calculate performance metrics of logistic regression classifiers
+Summarize predictions of logistic regression classifier
 </h3>
 <p class="rd-p">
-Calculate accuracy, sensitivity, specificity, false positive rate, and false negative rate for predictions from logistic regression classifiers
+Summarize the predicted probabilities of the classifier, and, if possible, calculate accuracy, sensitivity, specificity, false positive rate, and false negative rate.
 </p>
 <h4>
 Usage
 </h4>
 <pre class="r"><code>## S3 method for class 'LRCpred'
-summary(object, ...)</code></pre>
+summary(object, ...)
+
+## S3 method for class 'summaryLRCpred'
+print(x, ...)</code></pre>
 <h4>
 Arguments
 </h4>
@@ -503,13 +510,19 @@ Arguments
 object
 </dt>
 <dd class="rd-dd">
-an object of class <code>LRCpred</code> returned by <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>.
+An object of class <code>LRCpred</code> returned by <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>.
+</dd>
+<dt>
+x
+</dt>
+<dd class="rd-dd">
+An object of class <code>summaryLRCpred</code>.
 </dd>
 <dt>
 …
 </dt>
 <dd class="rd-dd">
-Ignored
+Arguments passed to <code><a href=http://www.inside-r.org/r-doc/base/print>print</a></code> methods. Ignored by the <code>summary</code> method.
 </dd>
 </dl>
 <h4>
@@ -517,24 +530,160 @@ Value
 </h4>
 <p class="rd-p">
 <dl>
-<ul>
-<li>
-If <code>truthCol</code> was provided in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, a <code>data.frame</code> is returned with the sensitivity, specificity, false negative rate, false positive rate, and accuracy for the class designated by the second level of the <code>truthLabels</code> argument in <code><a href=#glmnetlrc>glmnetLRC</a></code>.
+Returns a <code>summaryLRCpred</code> object. If <code>truthCol</code> was provided in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, the result is a list with the following elements:
 </p>
 <p class="rd-p">
-</li>
-<li>
-If <code>truthCol = NULL</code> in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code> a tabulation of the number of predictions for each class is returned.
-</li>
-</ul>
+<dl>
+<dt>
+ConfusionMatrixMetrics
+</dt>
+<dd>
+A matrix with the sensitivity, specificity, false negative rate, false positive rate, and accuracy for the class designated by the second level of the <code>truthLabels</code> argument provided to <code><a href=#glmnetlrc>glmnetLRC</a></code>
+</dd>
+</p>
+<p class="rd-p">
+<dt>
+PredProbSummary
+</dt>
+<dd>
+A numeric summary of the predicted probabilities, according to the true class
+</dd>
+</p>
+<p class="rd-p">
+</dl>
+</p>
+<p class="rd-p">
+If <code>truthCol</code> was not provided in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, the result is a list with the following elements:
+<dl>
+<dt>
+PredClassSummary
+</dt>
+<dd>
+A tabulation of the number of predictions in each class
+</dd>
+</p>
+<p class="rd-p">
+<dt>
+PredProbSummary
+</dt>
+<dd>
+A numeric summary of the predicted probabilities, according to the predicted class
+</dd>
+</p>
+<p class="rd-p">
+</dl>
 </p>
 <p class="rd-p">
 </dl>
 </p>
 <h4>
+Methods (by generic)
+</h4>
+<p class="rd-p">
+<ul>
+<li>
+<code>print</code>: Prints a <code>summaryLRCpred</code> object in a readable format.
+</li>
+</ul>
+</p>
+<h4>
 See also
 </h4>
-<p>See <code><a href=#glmnetlrc>glmnetLRC</a></code> and <code><a href=#glmnetlrc_fit>glmnetLRC_fit</a></code> for examples.</p>
+<p>See <code><a href=#glmnetlrc>glmnetLRC</a></code> for examples.</p>
+<h4>
+Author
+</h4>
+<p>Landon Sego</p>
+</div>
+<div id="plot.lrcpred" class="section level2">
+<h2>plot.LRCpred</h2>
+<h3>
+Plot the predictions of logistic regression classifier
+</h3>
+<h4>
+Usage
+</h4>
+<pre class="r"><code>## S3 method for class 'LRCpred'
+plot(x, pch = c(1, 2), col = c("Blue", "Red"),
+  scale = 1, seed = 1, parArgs = NULL, legendArgs = NULL,
+  lineArgs = NULL, textArgs = NULL, ...)</code></pre>
+<h4>
+Arguments
+</h4>
+<dl class="rd-dl">
+<dt>
+x
+</dt>
+<dd class="rd-dd">
+an object of class <code>LRCpred</code> returned by <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>.
+</dd>
+<dt>
+pch
+</dt>
+<dd class="rd-dd">
+A vector of at most length 2 indicating the plotting symbols to be used to differentiate the two true classes. If <code>truthCol</code> was not specified in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, only the first element is used. This is passed to <code><a href=http://www.inside-r.org/r-doc/graphics/plot>plot</a></code>.
+</dd>
+<dt>
+col
+</dt>
+<dd class="rd-dd">
+A vector of at most length 2 indicating the colors of the plotted points in order to differentiate the two true classes. If <code>truthCol</code> was not specified in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, only the first element is used. This is passed to <code><a href=http://www.inside-r.org/r-doc/graphics/plot>plot</a></code>.
+</dd>
+<dt>
+scale
+</dt>
+<dd class="rd-dd">
+A numeric value in (0, 1] that controls scaling of the horizontal axis. A value of 1 corresponds to the standard, linear scale. Values closer to 0 symetrically zoom-in the axis near 0 and 1 while zooming-out the axis in the neighborhood of 0.5. Values of <code>scale</code> closer to 0 are useful if most of the probability predictions are piled up near 0 and 1.
+</dd>
+<dt>
+seed
+</dt>
+<dd class="rd-dd">
+Single numeric value that sets the seed for the random jitter of the vertical axis of the plot.
+</dd>
+<dt>
+parArgs
+</dt>
+<dd class="rd-dd">
+If desired, a list of named arguments that will be passed to <code><a href=http://www.inside-r.org/r-doc/graphics/par>par</a></code> which is called prior to making the plot.
+</dd>
+<dt>
+legendArgs
+</dt>
+<dd class="rd-dd">
+If desired, a list of named arguments that will be passed to <code><a href=http://www.inside-r.org/r-doc/graphics/legend>legend</a></code>. If <code>truthCol</code> was not specified in the call to <code><a href=#glmnetlrc>predict.glmnetLRC</a></code>, no legend is drawn.
+</dd>
+<dt>
+lineArgs
+</dt>
+<dd class="rd-dd">
+If desired, a list of named arguments that will be passed to <code><a href=http://www.inside-r.org/r-doc/graphics/abline>abline</a></code> governing the vertical line that indicates the value of <span class="math inline"><em>τ</em></span>.
+</dd>
+<dt>
+textArgs
+</dt>
+<dd class="rd-dd">
+If desired, a list of named arguments that will be passed to <code><a href=http://www.inside-r.org/r-doc/graphics/text>text</a></code> governing the text indicating the value of <span class="math inline"><em>τ</em></span>.
+</dd>
+<dt>
+…
+</dt>
+<dd class="rd-dd">
+Arguments passed to <code><a href=http://www.inside-r.org/r-doc/graphics/plot.default>plot.default</a></code>.
+</dd>
+</dl>
+<h4>
+Value
+</h4>
+<p class="rd-p">
+<dl>
+A plot showing the predicted probabilities of the logisitic regression classifier, with a vertical bar showing the value of the probability threshold, <span class="math inline"><em>τ</em></span>.
+</dl>
+</p>
+<h4>
+See also
+</h4>
+<p>See <code><a href=#glmnetlrc>glmnetLRC</a></code> for an example.</p>
 <h4>
 Author
 </h4>

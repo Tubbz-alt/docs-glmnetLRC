@@ -4,6 +4,7 @@
   topics:
     - glmnetLRC
     - summary.LRCpred
+    - plot.LRCpred
     - lossMatrix
 -
   section_name: Data
