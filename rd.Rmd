@@ -19,7 +19,7 @@ brand: |-
 <h1>Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss Function</h1>
 
 <p><strong>Authors:</strong> (none)</p>
-<p><strong>Version:</strong> 0.1.5</p>
+<p><strong>Version:</strong> 0.1.6</p>
 <p><strong>License:</strong> file LICENSE</p>
 
 <h4>Description</h4>
