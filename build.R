@@ -80,11 +80,11 @@ rsed::streamEdit(list(
   # Fix glmnetLRC link in glmnetLRC_fit
   s = list(pattern = "<code><a href='glmnetLRC.html'>",
            replacement = "<code><a href='#glmnetlrc'>",
-           fixed = TRUE),
+           fixed = TRUE)),
                       
   # Fix the author field
-  r = list(at = "<strong>Authors:</strong> (none)",
-           replacement = "<strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey",
-           fixed = TRUE)),
+  ## r = list(at = "<strong>Authors:</strong> (none)",
+  ##          replacement = "<strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey",
+  ##          fixed = TRUE)),
                  
   inFile = "rd.html", outFile = "rd.html")

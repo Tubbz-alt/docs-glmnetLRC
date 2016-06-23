@@ -9,7 +9,7 @@ output:
 navpills: |
   <li class="active"><a href='index.html'>Docs</a></li>
   <li><a href='rd.html'>Package Ref</a></li>
-  <li><a href='https://github.com/pnnl/Smisc'>Github <i class='fa fa-github'></i></a></li>
+  <li><a href='https://github.com/pnnl/glmnetLRC'>Github <i class='fa fa-github'></i></a></li>
 brand: |-
   <a href="http://pnnl.github.io">
   <img src='figures/icon.png' alt='PNNL icon' width='30px' height='30px' style='margin-top: -3px;'>
