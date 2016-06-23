@@ -18,8 +18,8 @@ brand: |-
 ---
 <h1>Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss Function</h1>
 
-<p><strong>Authors:</strong> (none)</p>
-<p><strong>Version:</strong> 0.1.6</p>
+<p><strong>Authors:</strong> <a href="mailto:Landon.Sego@pnnl.gov">Landon H. Sego</a> [aut, cre],Alexander M. Venzin [ctb],John A. Ramey [ctb]</p>
+<p><strong>Version:</strong> 0.1.7</p>
 <p><strong>License:</strong> file LICENSE</p>
 
 <h4>Description</h4>
@@ -158,10 +158,11 @@ be predicted, as well as an optional column of true labels.
 to fit the elastic-net logistic regression classifier.</dd>
   <dt>truthCol</dt>
   <dd class="rd-dd">The column number or column name in <code>newdata</code> that contains the
-true labels. Optional.</dd>
+true labels, which should be a factor (and this implies <code>newdata</code> should be a dataframe if <code>truthCol</code> is provided).
+Optional.</dd>
   <dt>keepCols</dt>
   <dd class="rd-dd">A numeric vector of column numbers (or a character vector of
-column names) that will be kept and returned with the predictions. Optional.</dd>
+column names) in <code>newdata</code> that will be kept and returned with the predictions. Optional.</dd>
   <dt>...</dt>
   <dd class="rd-dd">For <code>glmnetLRC()</code>, these are additional arguments to <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> in the <code>glmnet</code> package.
 Certain arguments of <code><a href=http://www.inside-r.org/packages/cran/glmnet/docs/glmnet>glmnet</a></code> are reserved by the <code>glmnetLRC</code> package and an error message will make that

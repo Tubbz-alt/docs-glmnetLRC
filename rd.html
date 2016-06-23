@@ -109,10 +109,10 @@
 Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss Function
 </h1>
 <p>
-<strong>Authors:</strong> Landon H. Sego, Alexander M. Venzin, John A. Ramey
+<strong>Authors:</strong> <a href="mailto:Landon.Sego@pnnl.gov">Landon H. Sego</a> [aut, cre],Alexander M. Venzin [ctb],John A. Ramey [ctb]
 </p>
 <p>
-<strong>Version:</strong> 0.1.6
+<strong>Version:</strong> 0.1.7
 </p>
 <p>
 <strong>License:</strong> file LICENSE
@@ -287,13 +287,13 @@ A dataframe or matrix containing the new set of observations to be predicted, as
 truthCol
 </dt>
 <dd class="rd-dd">
-The column number or column name in <code>newdata</code> that contains the true labels. Optional.
+The column number or column name in <code>newdata</code> that contains the true labels, which should be a factor (and this implies <code>newdata</code> should be a dataframe if <code>truthCol</code> is provided). Optional.
 </dd>
 <dt>
 keepCols
 </dt>
 <dd class="rd-dd">
-A numeric vector of column numbers (or a character vector of column names) that will be kept and returned with the predictions. Optional.
+A numeric vector of column numbers (or a character vector of column names) in <code>newdata</code> that will be kept and returned with the predictions. Optional.
 </dd>
 <dt>
 …

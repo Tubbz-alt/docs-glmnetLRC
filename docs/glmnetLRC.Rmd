@@ -197,3 +197,6 @@ Sego LH, Venzin AM, Ramey JA. 2016. glmnetLRC:  Lasso and Elastic-Net Logistic
 Regression Classification (LRC) with an arbitrary loss function in R. Pacific 
 Northwest National Laboratory. http://pnnl.github.io/glmnetLRC.
 
+# Acknowledgements
+
+This package was developed with support from the Signature Discovery Initiative at Pacific Northwest National Laboratory, conducted under the Laboratory Directed Research and Development Program at PNNL, a multiprogram national laboratory operated by Battelle for the U.S. Department of Energy. 
