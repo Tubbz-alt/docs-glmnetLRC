@@ -9,7 +9,7 @@
   
   <title>glmnetLRC</title>
 
-    <script src="assets/jquery-1.11.0/jquery.min.js"></script>
+    <script src="assets/jquery-1.11.3/jquery.min.js"></script>
   <link href="assets/bootstrap-3.3.2/css/bootstrap.min.css" rel="stylesheet" />
   <script src="assets/bootstrap-3.3.2/js/bootstrap.min.js"></script>
   <script src="assets/bootstrap-3.3.2/shim/html5shiv.min.js"></script>
@@ -19,6 +19,9 @@
   <link href="assets/fontawesome-4.3.0/css/font-awesome.min.css" rel="stylesheet" />
   <script src="assets/stickykit-1.1.1/sticky-kit.min.js"></script>
   <script src="assets/jqueryeasing-1.3/jquery.easing.min.js"></script>
+  <link href="assets/recliner-0.2.2/recliner.css" rel="stylesheet" />
+  <script src="assets/recliner-0.2.2/recliner.min.js"></script>
+  <script src="assets/recliner-0.2.2/onload.js"></script>
   <link href="assets/packagedocs-0.0.1/pd.css" rel="stylesheet" />
   <script src="assets/packagedocs-0.0.1/pd.js"></script>
   <script src="assets/packagedocs-0.0.1/pd-collapse-toc.js"></script>
@@ -112,7 +115,7 @@ Lasso and Elastic-Net Logistic Regression Classification with an Arbitrary Loss 
 <strong>Authors:</strong> <a href="mailto:Landon.Sego@pnnl.gov">Landon H. Sego</a> [aut, cre],Alexander M. Venzin [ctb],John A. Ramey [ctb]
 </p>
 <p>
-<strong>Version:</strong> 0.1.7
+<strong>Version:</strong> 0.1.8
 </p>
 <p>
 <strong>License:</strong> file LICENSE
@@ -172,7 +175,7 @@ print(x, verbose = TRUE, ...)
 plot(x, ...)
 
 ## S3 method for class 'glmnetLRC'
-coef(object, ...)
+coef(object, tol = 1e-10, ...)
 
 ## S3 method for class 'glmnetLRC'
 predict(object, newdata, truthCol = NULL,
@@ -276,6 +279,12 @@ object
 </dt>
 <dd class="rd-dd">
 For the <code>coef</code>, <code>predict</code>, and <code>extract</code> methods: an object of class <code>glmnetLRC</code> (returned by <code>glmnetLRC()</code>) which contains the optimally-trained elastic-net logistic regression classifier.
+</dd>
+<dt>
+tol
+</dt>
+<dd class="rd-dd">
+A small positive number, such that coefficients with an absolute value smaller than <code>tol</code> are not returned.
 </dd>
 <dt>
 newdata
@@ -853,7 +862,8 @@ data(glmnetLRC_fit)</code></pre>
                 <p>&copy; Battelle Memorial Institute, 2016</p>
               </div>
       <div class="col-md-6">
-        <p class="pull-right">created with <a href="https://github.com/hafen/packagedocs">packagedocs</a></p>
+        <p class="pull-right">created with <a href="https://github.com/hafen/packagedocs">packagedocs</a>
+                  </p>
       </div>
     </div>
   </div>
