@@ -43,8 +43,8 @@ rsed::streamEdit(list(
            fixed = TRUE),
 
   # Fix coef method for 'glmnetLRC'
-  r = list(at = "coefglmnetLRC(object, ...)",
-           replacement = "## S3 method for class 'glmnetLRC'\ncoef(object, ...)",
+  r = list(at = "coefglmnetLRC(object,",
+           replacement = "## S3 method for class 'glmnetLRC'\ncoef(object, tol = 1e-10, ...)",
            fixed = TRUE),
 
   # Fix predict method for 'glmnetLRC'
